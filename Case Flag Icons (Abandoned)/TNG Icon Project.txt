@@ -1,0 +1,21 @@
+ICONS for TNG
+
+Tacoma Division   - T
+Vancouver Division - V
+Last confirmed Plan - PDF icon
+Confirmation Completed - C
+Plan Calc 1 - Calculator / Accounting icon
+Delinquenct - Red Money Cross Out
+IRS Pledged - IRS icon 
+DSO - Money Hands Icon
+Lanning Relief - Money Circle 
+Bonus Pledged - Bonus icon
+NOn-Standard Plan -  Yelow Triangle 
+1-36, 37+ - 37
+Debtor 1 Not Eligible for Discharge - Person with 1
+Debtor 2 Not Eligible for Discharge - Person with 2
+Debtor 1 & 2 not eligible for discharge - Person with 1/2
+Covid 19 Case - Covid
+Large Balance on hand - Money Bag with Red Triangle
+
+

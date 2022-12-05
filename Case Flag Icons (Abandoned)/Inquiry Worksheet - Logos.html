@@ -1,0 +1,23 @@
+|~
+SELECT 
+    '<table style="border-collapse: collapse; width: auto" cellpadding=2 cellspacing=2>' + 
+        '<tr>' + 
+            '<td style="">' + CASE WHEN (tblDivisionCode.Description = 'Tacoma Division') THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\TacomaCase.png" title="Tacoma Division"></td>' ELSE '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\VancouverCase.png" title="Vancouver Division"></td>' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1035),'') <> '' THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\nonstandardplan.png" title="Non-standard Plan"></td>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1024),'') <> '' THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\DSOCase.png" title="DSO Case"></td>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},7), '') <> '' THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\IRSPledged.png" title="IRS Pledged"></td>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1025),'') <> '' THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\BonusPledged.png" title="Bonuses Pledged"></td>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1027),'') <> '' THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\lanningrelief.png" title="Lanning Relief"></td>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1026),'') <> '' THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\1-36-37on.png" title="1-36, 37 on"></td>' ELSE '' END + 
+            CASE WHEN dbo.udf_TAC_GetDischarge({CaseID}) = 1 THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\Debtor1.png" title="Debtor1 Not Eligible for Discharge"></td>' ELSE '' END + 
+            CASE WHEN dbo.udf_TAC_GetDischarge({CaseID}) = 2 THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\Debtor2.png" title="Debtor2 Not Eligible for Discharge"></td>' ELSE '' END + 
+            CASE WHEN dbo.udf_TAC_GetDischarge({CaseID}) = 3 THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\Debtor1and2.png" title="Debtor 1 & 2 Not Eligible for Discharge"></td>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1038),'') <> '' THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\covid-19.png" title="Cares Act Covid 19 Case"></td>' ELSE '' END + 
+            CASE WHEN (Select Top 1 SnapshotDescription from tblCaseWorksheetSnapshot where caseid = {CaseID} and CaseWorksheetsID = 40) <> ''  Then '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\ConfirmationCompleted.png" title="Confirmation Worksheet Completed"></td>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},3),'') <> '' THEN '<td style=""> <img style="width: 40px; height: 40px;" src="tac_images\convertedfromch7.png" title="Converted From CH7 to CH13"></td>' ELSE '' END + 
+        '</tr>' + 
+    '</table>' 
+AS FieldData FROM tblCaseData INNER JOIN 
+tblDivisionCode ON tblCaseData.DivisionCodeID = tblDivisionCode.DivisionCodeID 
+WHERE tblCaseData.CaseNumber = '{CaseNumber}' 
+~|
