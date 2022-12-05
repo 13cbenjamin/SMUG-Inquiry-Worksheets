@@ -1,0 +1,27 @@
+Field with Text: id="TextBox_186_10301"
+FOrum Heading ID: 10 - Base calculatoins
+
+Select dbo.udfGetWorksheetData(26832,186,'TextBox',10301,0)
+
+|~Select ISNULL(dbo.udfGetWorksheetData({CaseID},186,'TextBox',10301,0), 'Worksheet Not Completed')~|
+
+Current Inquiry Worksheet Code:
+<b>Plan Narrative Worksheet Base Calculation:  |~Select ISNULL(dbo.udfGetWorksheetData({CaseID},186,'TextBox',10301,0), 'Worksheet Not Completed')~|</b>
+
+
+<!-- The below is not actually setup as it doesn't pull in proper formatting -->
+
+
+341 Notes -> Items Needed for Confirmation 
+Forum Heading ID: 3 - 341 Notes
+Field: TextBox_180_10002
+Inquiry Worksheet Code: 
+
+|~Select ISNULL(dbo.udfGetWorksheetData({CaseID},180,'TextBox',10002,0), 'Worksheet Not Completed or Blank')~|
+
+<b>Confirmation Worksheet - 341 Items Needed for Confirmation<b></br>
+
+
+    <span id="forumInquiry341"></span>
+
+    $("#forumInuiry341").html("|~Select ISNULL(dbo.udfGetWorksheetData({CaseID},180,'TextBox',10002,0), 'Worksheet Not Completed or Blank')~|")

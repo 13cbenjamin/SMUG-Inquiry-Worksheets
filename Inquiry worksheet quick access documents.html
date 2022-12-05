@@ -1,0 +1,48 @@
+<div style="width: 33vw; border: 2px solid #6ec56b; border-radius: 1em; padding: 4px; ">
+    <div style="text-align: center;"><span style="font-size: medium; color: #262727; font-weight: bold; text-decoration: underline;">Quick Access Documents:</span></div>
+    <div style=" margin-left: auto; margin-right: auto; margin-top: 10px;display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); column-gap: 10px; row-gap: 10px; color: black; font-size: small; font-weight: bold;">
+        <!-- Last Plan Filed -->
+        |~Select TOP 1'<div style="display: flex; flex-direction: column; margin-left: auto; margin-right: auto; text-align: center;"><a target="_blank" href="'+dbo.tblDocumentSetup.DocumentMapPath+REPLACE(REPLACE(dbo.tblDocumentDetail.ImageLocation, '\', '/'), ' ', '%20') +'"><img style="width: 30px; height: 30px;" src="tac_images\pdf.png">  Last Filed Plan </a></div>'
+  as FieldData
+        FROM dbo.tblDocumentDetail
+        INNER JOIN dbo.tblDocumentKeys ON dbo.tblDocumentDetail.DocumentID = dbo.tblDocumentKeys.DocumentID
+        INNER JOIN dbo.tblDocumentFormType ON dbo.tblDocumentDetail.FormTypeCode = dbo.tblDocumentFormType.FormTypeCode
+        INNER JOIN dbo.tblDocumentSetup ON dbo.tblDocumentFormType.TruCode = dbo.tblDocumentSetup.TruCode
+        INNER JOIN dbo.tblDocumentFormSubType ON tblDocumentFormType.FormSubTypeCode = tblDocumentFormSubType.FormSubTypeCode 
+  INNER JOIN dbo.tblCaseData ON dbo.tblDocumentKeys.DocumentKey = dbo.tblCaseData.CaseID
+        WHERE tblCaseData.CaseID = {CaseID}
+        AND tblDocumentFormType.FormTypeCode IN (3, 66, 67, 103, 104, 1028, 1132, 1046, 1054, 1058, 1141, 1242)
+        AND CourtsDocumentNumber = (SELECT dbo.udfGetWorksheetData({CaseID},186,'TextBox',111,0))
+  AND tblDocumentDetail.Description NOT LIKE ('%Withdrawn%')
+  and dbo.tblDocumentKeys.KeyTable = 1000
+  order by tblDocumentDetail.CreatedDate DESC~|
+<!-- Plan Calc 1 Case at Confirmatoin  -->
+  |~Select TOP 1'<div style="display: flex; flex-direction: column; margin-left: auto; margin-right: auto; text-align: center;"> <a target="_blank" href="'+dbo.tblDocumentSetup.DocumentMapPath+REPLACE(REPLACE(dbo.tblDocumentDetail.ImageLocation, '\', '/'), ' ', '%20') +'"><img style="width: 30px; height: 30px;" src="tac_images\pdf.png"> Case At Confirmation </a></div>'
+  as FieldData
+        FROM dbo.tblDocumentDetail
+        INNER JOIN dbo.tblDocumentKeys ON dbo.tblDocumentDetail.DocumentID = dbo.tblDocumentKeys.DocumentID
+        INNER JOIN dbo.tblDocumentFormType ON dbo.tblDocumentDetail.FormTypeCode = dbo.tblDocumentFormType.FormTypeCode
+        INNER JOIN dbo.tblDocumentSetup ON dbo.tblDocumentFormType.TruCode = dbo.tblDocumentSetup.TruCode
+        INNER JOIN dbo.tblDocumentFormSubType ON tblDocumentFormType.FormSubTypeCode = tblDocumentFormSubType.FormSubTypeCode 
+  INNER JOIN dbo.tblCaseData ON dbo.tblDocumentKeys.DocumentKey = dbo.tblCaseData.CaseID
+        WHERE tblCaseData.CaseID = {CaseID}
+        AND tblDocumentFormType.FormTypeCode IN (188)
+  and dbo.tblDocumentKeys.KeyTable = 1000
+  order by tblDocumentDetail.CreatedDate DESC~|
+
+<!-- Unprocessed Documents -->
+  |~Select '<div style="display: flex; flex-direction: column; margin-left: auto; margin-right: auto; text-align: center;"> <a target="_blank" href="'+dbo.tblDocumentSetup.DocumentMapPath+REPLACE(REPLACE(dbo.tblDocumentDetail.ImageLocation, '\', '/'), ' ', '%20') +'"><img style="width: 30px; height: 30px;" src="tac_images\new-pdf.png">' + tblDocumentDetail.Description + '</a></div>'
+  as FieldData
+        FROM dbo.tblDocumentDetail
+        INNER JOIN dbo.tblDocumentKeys ON dbo.tblDocumentDetail.DocumentID = dbo.tblDocumentKeys.DocumentID
+        INNER JOIN dbo.tblDocumentFormType ON dbo.tblDocumentDetail.FormTypeCode = dbo.tblDocumentFormType.FormTypeCode
+        INNER JOIN dbo.tblDocumentSetup ON dbo.tblDocumentFormType.TruCode = dbo.tblDocumentSetup.TruCode
+        INNER JOIN dbo.tblDocumentFormSubType ON tblDocumentFormType.FormSubTypeCode = tblDocumentFormSubType.FormSubTypeCode 
+  INNER JOIN dbo.tblCaseData ON dbo.tblDocumentKeys.DocumentKey = dbo.tblCaseData.CaseID
+        WHERE tblCaseData.CaseID = {CaseID}
+        AND tblDocumentDetail.processed = 0
+        AND tblDocumentDetail.processeddate = '1/1/1900'
+  order by tblDocumentDetail.CreatedDate DESC~|
+    </div>
+
+</div>

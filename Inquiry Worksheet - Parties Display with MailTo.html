@@ -1,0 +1,1259 @@
+|~SELECT CASE WHEN EXISTS( SELECT TOP 1 
+                           tblEmailAddress.EmailAddress 
+                           FROM tblEmailAddress INNER JOIN 
+                           vwCRMainAttorney ON tblEmailAddress.NameID = vwCRMainAttorney.NameID 
+                           AND vwCRMainAttorney.CaseID = {CaseID}) THEN 
+'<b>' + vwCRMainAttorney.AttyLongName + '</b><br/>' + 
+'<table width=auto border=1 cellpadding=2>
+    <tr> 
+        <td align=center style="background-color:#006699; color:white;"><b>Name</b></td>      
+        <td align=center style="background-color:#006699; color:white;"><b>Email Address</b></td> 
+        <td align=center style="background-color:#006699; color:white;"><b>Comment</b></td> 
+        <td align=center style="background-color:#006699; color:white;"><b>E-Notice</b></td> 
+        <td align=center style="background-color:#006699; color:white;"><b>Correspondence</b></td> 
+    </tr>' END AS FieldData , 'AAAAA' AS SortOrder 
+FROM vwCRMainAttorney 
+WHERE vwCRMainAttorney.CaseID = {CaseID} 
+UNION ALL 
+SELECT CASE WHEN EXISTS( SELECT TOP 1 
+                           tblEmailAddress.EmailAddress 
+                           FROM tblEmailAddress INNER JOIN 
+                           vwCRMainAttorney ON tblEmailAddress.NameID = vwCRMainAttorney.NameID 
+                           AND vwCRMainAttorney.CaseID = {CaseID}) THEN 
+    '<tr>' + 
+        '<td align=left>' + tblEmailAddress.Name + '</td>' + 
+        '<td align=left><a href=mailto:' + tblEmailAddress.EmailAddress + '?subject=' + tblCaseData.DisplayCaseNumber + ' onclick="WCgoToAppReset(''inqCaseParties.aspx?xWin=&amp;MenuTab=1'','''');"><img src=images\EmailIcon.png>' + tblEmailAddress.EmailAddress + '</a></td>' +
+        '<td align=left>' + CONVERT(VARCHAR(MAX), tblEmailAddress.Comment) + '</td>' + 
+        '<td align=center>' + ISNULL(tblCh13Flags.Flag, '') + '</td>' + 
+        '<td align=center>' + ISNULL(dbo.udfGetCh13Flag(tblEmailAddress.EmailID,1036,''),'') + '</td>' + 
+    '</tr>' 
+END AS FieldData, Name AS SortOrder 
+FROM tblEmailAddress INNER JOIN 
+tblName ON tblEmailAddress.NameID = tblName.NameID INNER JOIN 
+tblCaseName ON tblName.NameID = tblCaseName.NameID  INNER JOIN 
+tblCaseData ON tblCaseName.CaseID = tblCaseData.CaseID INNER JOIN 
+tblTrustee ON tblCaseData.TrusteeID = tblTrustee.TrusteeID LEFT JOIN 
+tblCh13Flags ON tblEmailAddress.EmailID = tblCh13Flags.LinkTableKey AND tblCh13Flags.LinkTableCodeID = 1203 AND tblCh13Flags.FlagCodesID = 1022 
+WHERE tblCaseName.CaseID = {CaseID} 
+AND tblCaseData.CaseNumber = '{CaseNumber}' 
+AND tblCaseName.NameTypeID = 1 
+AND dbo.udfAttyCaseNameID(tblCaseData.CaseID) = tblCaseName.CaseNameID 
+AND tblTrustee.ProSeNameID <> tblName.NameID  
+GROUP BY tblEmailAddress.Name, tblEmailAddress.EmailAddress, tblEmailAddress.EmailID, tblCaseData.DisplayCaseNumber, CONVERT(VARCHAR(MAX), tblEmailAddress.Comment), tblCh13Flags.Flag 
+
+UNION ALL 
+SELECT  CASE WHEN EXISTS( SELECT TOP 1 
+                           tblEmailAddress.EmailAddress 
+                           FROM tblEmailAddress INNER JOIN 
+                           vwCRMainAttorney ON tblEmailAddress.NameID = vwCRMainAttorney.NameID 
+                           AND vwCRMainAttorney.CaseID = {CaseID}) THEN 
+'</table>' END AS FieldData, 'ZZZZZ' AS SortOrder 
+ORDER BY SortOrder~|
+
+
+
+
+
+
+<body onload="try {cTR=document.getElementById('dgrdCaseNames').getElementsByTagName('tr');} catch (e){};try{hideDivs(document.getElementById('ColumnDDL').selectedIndex+1);resizeDivs(document.getElementById('ColumnDDL').selectedIndex+1);} catch (e){};try{document.getElementById('div-datagrid1').scrollLeft=0;document.getElementById('div-datagrid1').scrollTop=0;} catch(e) {};" onbeforeunload="WCdisableScreenOverflow()" onresize="if (WCszBV != 'iPad'){if (GLresizeTimeout){clearTimeout(GLresizeTimeout)};GLresizeTimeout=0;GLresizeTimeout=setTimeout(&quot;resizeDivs(document.getElementById('ColumnDDL').selectedIndex+1);WCpleaseWaitResize();document.getElementById('div-datagrid1').scrollLeft=0;document.getElementById('div-datagrid1').scrollTop=0;lockCol(document.getElementById('div-datagrid1').scrollLeft,document.getElementById('div-datagrid1').scrollTop,document.getElementById('ColumnDDL').selectedIndex+1);&quot;,WCszBW)}" onorientationchange="WCpleaseWaitResize();WCdisableScreenOverflow();setTimeout(&quot;resizeDivs(document.getElementById('ColumnDDL').selectedIndex+1);document.getElementById('div-datagrid1').scrollLeft=0;document.getElementById('div-datagrid1').scrollTop=0;lockCol(document.getElementById('div-datagrid1').scrollLeft,document.getElementById('div-datagrid1').scrollTop,document.getElementById('ColumnDDL').selectedIndex+1);;WCenableScreenOverflow()&quot;,0);" style="overflow:visible"><div id="SoftwareHeading" style="overflow: hidden; display: inline; position: relative; top: 0px; left: 0px; width: 100%; height: 59px;">
+
+<script language="JavaScript" type="text/javascript"> 
+
+    function runmytask(thisvalue) {
+        if (thisvalue != '') {
+            eval(thisvalue);
+            document.getElementById("mytaskselect").selectedIndex = "0"
+        }
+    }
+
+function mh_ResetWindows()
+    {
+	WCresetWindows();
+    }
+
+function mh_DropWindows()
+    {
+	WCdropWindows('');
+    }
+
+function mh_BuildCases()
+    {
+    var mh_sf = document.getElementById('mh_SearchField').value;
+    var mh_cq = '';
+
+    if (mh_sf.substring(7, 8) === "}") {
+        WCfindCase('c', mh_sf.substring(0, 7))
+        var newcaseid
+        if (WCszCID != '') {
+
+            $.ajax({
+                type: "get",
+                url: "xmlGetInfo.aspx?action=setcaseid&clmno=" + mh_sf.substring(8) + "&cn=" + mh_sf.substring(0, 7),
+                async: false,
+                success: function (data) {
+                    newcaseid = data;                    
+                }
+            });          
+
+            var n = newcaseid.search("~");
+
+            if (n == -1) {
+                var cid = newcaseid.substring(0, 19).trim()
+                var pid = newcaseid.substring(20).trim()
+                WCgoToApp('PleaseWaitStatic.aspx?&sessionname=CurrentInqProgram&sessionvalue=CasePayees&prog=ChangeCase.aspx?&qs=cid=' + cid + '|pid=' + pid + '|progskip=~');
+            } else {
+                alert("Record Not Found")
+            }
+        }
+        return false;
+    }
+
+
+	var numstr = "0123456789";
+   	if (mh_sf.length == 7 && numstr.indexOf(mh_sf.substring(0,1)) > -1 && numstr.indexOf(mh_sf.substring(1,2)) > -1 && numstr.indexOf(mh_sf.substring(2,3)) > -1 && numstr.indexOf(mh_sf.substring(3,4)) > -1 && numstr.indexOf(mh_sf.substring(4,5)) > -1 && numstr.indexOf(mh_sf.substring(5,6)) > -1 && numstr.indexOf(mh_sf.substring(6,7)) > -1)
+	    {
+	    WCfindCase('c',mh_sf)
+	    if (WCszCID != '')
+	        {
+	        WCgoToApp('bldCaseListFromHeading.aspx?cq='+mh_cq+'&single=Y&progskip=~&search=' + mh_sf);
+	        }
+	    }
+	else
+	    {
+	    if (mh_sf.length == 8 && numstr.indexOf(mh_sf.substring(0,1)) > -1 && numstr.indexOf(mh_sf.substring(1,2)) > -1 && mh_sf.substring(2,3) == '-' && numstr.indexOf(mh_sf.substring(3,4)) > -1 && numstr.indexOf(mh_sf.substring(4,5)) > -1 && numstr.indexOf(mh_sf.substring(5,6)) > -1 && numstr.indexOf(mh_sf.substring(6,7)) > -1 && numstr.indexOf(mh_sf.substring(7,8)) > -1)
+	        {
+	        WCfindCase('c',mh_sf.substring(0,2)+mh_sf.substring(3,8))
+	        if (WCszCID != '')
+	            {
+	            WCgoToApp('bldCaseListFromHeading.aspx?cq='+mh_cq+'&single=Y&progskip=~&search=' + mh_sf.substring(0, 2) + mh_sf.substring(3, 8));
+	            }
+	        }
+	    else
+	        {
+		    if (mh_sf.substring(0,1) == "^")
+		        {
+		        WCfindCase('i',mh_sf.substring(1))
+		        if (WCszCID != '')
+	                {
+		            WCgoToApp('bldCaseListFromHeading.aspx?cq=' + mh_cq + '&single=Y&progskip=~&search=' + mh_sf);
+		            }
+		        }
+		    else
+		        {
+		        if (mh_sf.substring(0,1) == "$")
+		            {
+		            WCopenWindow('bldCaseListFromHeading.aspx?cq=' + mh_cq + '&progskip=~&search=' + escape(mh_sf) + '', 'CheckDetail_651', ',scrollbars,resizable', 'All');
+		            }
+		        else
+		            {
+		            WCopenWindow('bldCaseListFromHeading.aspx?cq=' + mh_cq + '&progskip=~&search=' + escape(mh_sf) + '', 'Search_651', ',scrollbars,resizable', 'All');
+		            }
+	            }
+	        }
+	    }
+    }
+        	
+function mh_searchHelp()
+    {
+    WCopenWindow('SearchHelp.aspx?progskip=~','SearchHelp_651',',scrollbars,resizable','All')
+    }
+
+function mh_setBSS()
+    {
+    if ('www.13software.com' != '' && 'False' == 'True')
+        {
+        BSSWindow = window.open('setBSS.aspx', 'BSSWeb', 'resizable=yes,status=yes,scrollbars=yes,width=1150,height=900'); 
+        }
+    } 
+ 
+</script> 
+
+<script src="bootstrap/js/jquery-3.4.1.min.js" type="text/javascript" charset="utf-8"></script>
+
+<script>
+
+    
+    
+    $(function() {
+        $("#ColDiv").click(function (e) {  
+            var clickedCell= $(e.target).closest("td");
+            updateUserInfoOnClick(clickedCell.attr("onclick"), clickedCell.attr("href"), "ColDiv");
+        });
+
+    });
+
+    $(document).ready(function () {
+
+        $("select").change(function () {
+            if ($(this).attr("name") != "CaseOptions") {
+                updateUserInfoOnClick("", $('option:selected', this).val(), "select");
+            }
+        });
+
+        $("a").click(function () {
+            updateUserInfoOnClick($(this).attr("onclick"), $(this).attr("href"), "a");
+        });
+
+        $("div").click(function () {
+            updateUserInfoOnClick($(this).attr("onclick"), $(this).attr("href"), "div");
+        });
+
+        $("td").click(function () {
+            updateUserInfoOnClick($(this).attr("onclick"), $(this).attr("href"), "td");
+        });
+
+        $("tr").click(function () {
+            updateUserInfoOnClick($(this).attr("onclick"), $(this).attr("href"), "tr");
+        });
+
+        $("button").click(function () {
+            updateUserInfoOnClick($(this).attr("onclick"), $(this).attr("href"), "button");
+        });
+
+    });
+
+    function updateUserInfoOnClick(onclickValue, hrefValue, whatClicked) {
+
+        if (onclickValue == null) { onclickValue = "" }
+        if (hrefValue == null) { hrefValue = "" }
+
+        if (onclickValue != "" || hrefValue != "") {
+
+            if (onclickValue.indexOf(".aspx") != -1 || onclickValue.indexOf(".ASPX") != -1 || hrefValue.indexOf(".aspx") != -1 || hrefValue.indexOf(".ASPX") != -1) {
+
+            $.ajax({
+                type: "POST",
+                url: "UserHistoryData.aspx?upd=1",
+                data: "onclick=" + escape(onclickValue) + "&href=" + escape(hrefValue),
+                dataType: "html",
+                success: function (result) {
+                }
+            });
+            }
+        }
+    }
+
+    
+
+</script>
+
+<script src="Theme.js" type="text/javascript" charset="utf-8"></script>
+
+		<div id="wrapper">
+			<div id="clouds">
+    
+<table style="background-color: transparent; border-collapse:collapse;border-color:#111111;" id="AutoNumber3" width="100%" cellpadding="0" border="0">
+	<tbody><tr>
+		<td style="height:40; background-color: transparent" width="10%" valign="top" nowrap="nowrap" align="center">
+            <a style="cursor:pointer" onmouseover="this.T_WIDTH=180;this.T_OFFSETX=20;this.T_BORDERCOLOR='#267BBD';this.T_BELOW=true;this.T_OFFSETY=20;this.T_STATIC=true;this.T_TITLE='Version Info';this.T_BGCOLOR='#ffffcc';return escape('Rev 9.0.300 released 2/2/2021<br>RPT: 900_2020-05-12<br>UDF: 900_2020-05-28')">
+		        <img src="images/Logo1.png" onclick="mh_setBSS()" width="130" height="25" border="0">
+            </a>
+            <br><font class="HeadingDateName">Tue Aug 10, 2021</font>
+		</td>
+ 	    <td style="background-color: transparent" width="90%" nowrap="nowrap" align="right">
+		    <table style="border-collapse:collapse;border-color:#111111" id="AutoNumber4" width="100%" cellspacing="0" border="0">
+				<tbody><tr>
+                    <td nowrap="nowrap" align="left">
+
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=1')" style="border:1px outset #FFFFFF;background-color:#006699         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;Home&nbsp;</span>
+    
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=2')" style="border:1px outset #FFFFFF;background-color:#008080         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;Cases&nbsp;</span>
+    
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=3')" style="border:1px outset #FFFFFF;background-color:#006633         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;Post&nbsp;</span>
+    
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=4')" style="border:1px outset #FFFFFF;background-color:#800040         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;Disburse&nbsp;</span>
+    
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=5')" style="border:1px outset #FFFFFF;background-color:#FF8080         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;Reports&nbsp;</span>
+    
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=6')" style="border:1px outset #FFFFFF;background-color:#FF8000         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;Tools&nbsp;</span>
+    
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=7')" style="border:1px outset #FFFFFF;background-color:#800080         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;G/L&nbsp;</span>
+    
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=8')" style="border:1px outset #FFFFFF;background-color:#CC0080         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;Means&nbsp;</span>
+    
+        <span onclick="WCgoToApp('MainMenu.aspx?menu=9')" style="border:1px outset #FFFFFF;background-color:#FF0000         ;cursor:pointer;color:white;font-family:helvetica;font-weight:bold;font-size:12px">&nbsp;Red Flag&nbsp;</span>
+    
+                    
+                    </td>
+				    <td nowrap="nowrap" align="center">
+				        &nbsp;<font class="HeadingWindowName">TEST SOFTWARE  TEST1_db</font>
+                        <br><font class="HeadingTrusteeName">Michael G. Malaier - Tacoma, WA</font>
+				    </td>
+
+			        <td width="1%" nowrap="nowrap" align="center">
+
+
+<button onclick="WCaddTickle('','')" type="button" id="btnTickle" style="width:80px;cursor:pointer;background-color:#006699;color:white;font-family:Arial;font-size:12px;font-weight:bold;border-style:outset;border-width:1px;border-color:white;">Tickle Me</button>
+&nbsp;
+                    </td>
+<style>
+
+    .modal-history {
+        display: none; /* Hidden by default */
+        position: fixed; /* Stay in place */
+        z-index: 1000; /* Sit on top */
+        padding-top: 100px; /* Location of the box */
+        left: 0;
+        top: 0;
+        width: 100%; /* Full width */
+        height: 100%; /* Full height */
+        overflow: auto; /* Enable scroll if needed */
+        background-color: rgb(0,0,0); /* Fallback color */
+        background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+
+    .modal-content-history {
+        position: relative;
+        background-color: #fefefe;
+        margin: auto;
+        padding: 0;
+        border: 1px solid #888;
+        width: 90%;
+        box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+        -webkit-animation-name: animatetop;
+        -webkit-animation-duration: 0.4s;
+        animation-name: animatetop;
+        animation-duration: 0.4s;
+        -webkit-border-radius: 11px !important;
+        -moz-border-radius: 11px !important;
+        border-radius: 11px !important; 
+
+    }
+
+    .close-history {
+        color: white;
+        float: right;
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+        .close-history:hover,
+        .close-history:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+    .modal-header-history {
+        padding: 2px 16px;
+        background-color: #376495;
+        color: white;
+        -webkit-border-top-left-radius: 10px !important;
+        -moz-border-radius-topleft: 10px !important;
+        border-top-left-radius: 10px !important; 
+        -webkit-border-top-right-radius: 10px !important;
+        -moz-border-radius-topright: 10px !important;
+        border-top-right-radius: 10px !important; 
+
+    }
+
+    .modal-body-history {
+        padding: 2px 16px;
+        -webkit-border-radius: 10px !important;
+        -moz-border-radius: 10px !important;
+        border-radius: 10px !important; 
+
+    }
+
+    .modal-footer-history {
+        padding: 2px 16px;
+        background-color: #376495;
+        color: white;
+        -webkit-border-bottom-left-radius: 10px !important;
+        -moz-border-radius-bottomleft: 10px !important;
+        border-bottom-left-radius: 10px !important; 
+        -webkit-border-bottom-right-radius: 10px !important;
+        -moz-border-radius-bottomright: 10px !important;
+        border-bottom-right-radius: 10px !important; 
+
+    }
+
+    .roundcorners-history {
+        border-collapse:separate;
+        border:solid white 5px;
+        border-radius:6px;
+        -moz-border-radius:6px;
+    }
+
+    a:link.navLinkUL {
+        color: #000;
+        font-size: 9pt;
+        font-weight: normal;
+        text-decoration: none;
+        width: 95%
+    }
+
+    a:active.navLinkUL {
+        color: #000;
+        font-size: 9pt;
+        font-weight: normal;
+        text-decoration: none;
+        width: 95%
+    }
+
+    a:visited.navLinkUL {
+        color: #000;
+        font-size: 9pt;
+        font-weight: normal;
+        text-decoration: none;
+        width: 95%
+    }
+
+    a:hover.navLinkUL {
+        color: #fff;
+        font-size: 9pt;
+        font-weight: normal;
+        text-decoration: none;
+        width: 100%;
+        background-color: #25476a;
+    }
+
+</style>
+
+    <td width="1%" nowrap="nowrap">
+
+        <button type="button" id="btnHistory" style="width:80px;cursor:pointer;background-color:#006699;color:white;font-family:Arial;font-size:12px;font-weight:bold;border-style:outset;border-width:1px;border-color:white;" title="View User History">My History</button>
+
+        <!-- The Modal -->
+        <div id="modalHistory" class="modal-history">
+          <!-- Modal content -->
+          <div class="modal-content-history">
+            <div class="modal-header-history">
+              <span class="close-history">×</span>
+              <span style="font-size: 16px; font-weight:bold;">My History</span>
+            </div>
+            <div class="modal-body-history" id="modalHistoryBody">
+                                
+            </div>
+
+            <br>
+
+            <div class="modal-footer-history">
+              <span id="spanFooter">&nbsp;</span>&nbsp;
+            </div>
+
+          </div>
+        </div>
+
+    </td>
+
+
+<script>
+    var modal = document.getElementById('modalHistory');
+    var btn = document.getElementById("btnHistory");
+    var span = document.getElementsByClassName("close-history")[0];
+
+    btn.onclick = function () {
+        modal.style.display = "block";
+        $('#modalHistoryBody').load("UserHistoryData.aspx")
+    }
+
+    span.onclick = function() {
+        modal.style.display = "none";
+    }
+
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
+        }
+    }
+</script>
+
+
+                    
+        			<td valign="top" nowrap="nowrap" align="right"> 
+                        <table border="0">
+                            <tbody><tr>
+                                <td valign="top" nowrap="nowrap" align="right">
+            				        <img alt="" onclick="mh_searchHelp()" style="cursor:pointer" title="Click here for search help" src="images/moreinfo.gif">
+            				        <input type="text" id="mh_SearchField" onfocus="WCszSF='search'" onblur="WCszSF=''" name="mh_SearchField" value="" size="16">
+                                    <img style="cursor:pointer" src="images/go.gif" onclick="mh_BuildCases()" alt="Click here to begin search" title="Click here to begin search" width="25" height="16">
+
+
+  	    			                <img style="cursor:pointer" src="images/world2.gif" onclick="mh_DropWindows()" alt="This will close all secondary windows" title="This will close all secondary windows" width="8" height="16">&nbsp;
+      				                <img style="cursor:pointer" src="images/world2.gif" onclick="mh_ResetWindows()" alt="This will reset all secondary window positions" title="This will reset all secondary window positions" width="8" height="16">&nbsp;
+
+                                    
+
+                                </td>
+
+                            </tr>
+
+                        </tbody></table>
+                    </td>
+				</tr>
+			</tbody></table>
+		</td>
+	</tr>
+	<tr>
+        <td width="10%" nowrap="nowrap" bgcolor="#17335d" align="center">&nbsp;
+            <font color="#fff089">
+                <i><strong>Chris Benjamin</strong></i>
+            </font>
+        </td>
+        <td width="90%" nowrap="nowrap" bgcolor="#728cba">
+            <table style="border-collapse:collapse" id="AutoNumber7" width="100%" cellspacing="1" cellpadding="2" border="0" bgcolor="728cba">
+                <tbody><tr>
+                    <!-- <td width="14%" bgcolor="#17335d" nowrap="nowrap"><font color="#FFFFFF"><b>&nbsp;<a class="coSect1" style="cursor:pointer" onclick="WCgoToApp('PleaseWaitStatic.aspx?prog=MainMenu.aspx?menu=')">Home</a></b></font></td> -->
+		            <td width="14%" nowrap="nowrap" bgcolor="#17335d">
+		                <font color="#FFFFFF"><b>&nbsp;
+		                    <span style="letter-spacing: -1.5pt">
+		
+		                        <a href="javascript:WCenableScreenOverflow()" style="cursor:pointer" title="Click here for inquiry window #1. Each individual letter will bring up a seperate inquiry window" class="coSect1" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=GetCases.aspx?&amp;qs=progskip=~|xWin=0','Query0_651',',scrollbars,resizable,','All')">I</a>
+		
+		                        <a href="javascript:WCenableScreenOverflow()" style="cursor:pointer" title="Click here for inquiry window #2. Each individual letter will bring up a seperate inquiry window" class="coSect1" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=GetCases.aspx?&amp;qs=progskip=~|xWin=1','Query1_651',',scrollbars,resizable,','All')">n</a>
+		
+		                        <a href="javascript:WCenableScreenOverflow()" style="cursor:pointer" title="Click here for inquiry window #3. Each individual letter will bring up a seperate inquiry window" class="coSect1" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=GetCases.aspx?&amp;qs=progskip=~|xWin=2','Query2_651',',scrollbars,resizable,','All')">q</a>
+		
+		                        <a href="javascript:WCenableScreenOverflow()" style="cursor:pointer" title="Click here for inquiry window #4. Each individual letter will bring up a seperate inquiry window" class="coSect1" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=GetCases.aspx?&amp;qs=progskip=~|xWin=3','Query3_651',',scrollbars,resizable,','All')">u</a>
+		
+		                        <a href="javascript:WCenableScreenOverflow()" style="cursor:pointer" title="Click here for inquiry window #5. Each individual letter will bring up a seperate inquiry window" class="coSect1" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=GetCases.aspx?&amp;qs=progskip=~|xWin=4','Query4_651',',scrollbars,resizable,','All')">i</a>
+		
+		                        <a href="javascript:WCenableScreenOverflow()" style="cursor:pointer" title="Click here for inquiry window #6. Each individual letter will bring up a seperate inquiry window" class="coSect1" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=GetCases.aspx?&amp;qs=progskip=~|xWin=5','Query5_651',',scrollbars,resizable,','All')">r</a>
+		
+		                        <a href="javascript:WCenableScreenOverflow()" style="cursor:pointer" title="Click here for inquiry window #7. Each individual letter will bring up a seperate inquiry window" class="coSect1" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=GetCases.aspx?&amp;qs=progskip=~|xWin=6','Query6_651',',scrollbars,resizable,','All')">y</a>
+			
+		                    </span></b>
+		                </font>
+		            </td>
+
+                    <td width="14%" nowrap="nowrap" bgcolor="#17335d">
+                        <font color="#FFFFFF"><b>&nbsp;
+                            <a class="coSect1" style="cursor:pointer" onclick="WCgoToApp('PleaseWaitStatic.aspx?prog=GetCases.aspx?&amp;qs=dcw=WCdropWindows(`Case`);')">Case Query</a></b>
+                        </font>
+                    </td>
+        
+                    <td width="14%" nowrap="nowrap" bgcolor="#17335d">
+                        <font color="#FFFFFF"><b>&nbsp;
+                            <a class="coSect1" style="cursor:pointer" onclick="WCgoToApp('PleaseWaitStatic.aspx?prog=NameSearch.aspx?&amp;qs=dcw=WCdropWindows(`Case`);')">Name Query</a></b>
+                        </font>
+                    </td>
+
+		            <td width="15%" nowrap="nowrap" bgcolor="#17335d">
+		                <font color="#FFFFFF"><b>&nbsp;
+			                <a href="javascript:WCenableScreenOverflow()" class="coSect1" style="cursor:pointer" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=MatterCalendarFullSelect.aspx?&amp;qs=progskip=~|','MatterListing_651',',scrollbars,resizable','')">Matter Listing</a></b>
+			            </font>
+            		</td>
+
+                    <td width="14%" nowrap="nowrap" bgcolor="#17335d">
+                        <font color="#FFFFFF">
+                            <select id="mytaskselect" style="border-radius: 4px; color: white; font-weight:bold; background-color: #18335C;" onchange="runmytask(this.value)"><option value="">My Tasks</option><option value="WCopenWindow('AdminWorksheets.aspx?progskip=~','ReserveReport1',',scrollbars,resizable','All');">Admin Worksheets</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Checks_Issued_Daily','UserForms',',scrollbars,resizable','')">Checks Issued Daily Tacoma</option><option value="WCgoToApp('PleaseWait.aspx?prog=GetPrevFilingsNewCases')">Download Previous Filing Info</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Letter_Audit-Gneiding_Debtor-2020','UserForms',',scrollbars,resizable','')">Letter - Annual Audit Debtor Letter</option><option value="WCgoToApp('inqTickle.aspx')">Maintain Tickles</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setPSProg.aspx?wsid=42','UserForms',',scrollbars,resizable','')">Motion Calendar Admin Worksheet</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=id=504','UserForms',',scrollbars,resizable','')">Report - 180 Day Review</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_341_CA_Follow_Up','UserForms',',scrollbars,resizable','')">Report - 341 CA Follow Up</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=id=498','UserForms',',scrollbars,resizable','')">Report - 341 Meeting of Creditors</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_90_Day_BarCheck|id=244','UserForms',',scrollbars,resizable','')">Report - 90 Day Bar Check</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Tickles_Active_Over_3_Days','UserForms',',scrollbars,resizable','')">Report - Active Tickles 3 Days and Older</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Tickles_Active_By_User','UserForms',',scrollbars,resizable','')">Report - Active Tickles By User</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Adequate_Protection_List','UserForms',',scrollbars,resizable','')">Report - Adequate Protection Claims List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Adversary_Pending','UserForms',',scrollbars,resizable','')">Report - Adversary Pending List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Annual_1040_With_Tax_Data_Records_CaseAdmin','UserForms',',scrollbars,resizable','')">Report - Annual 1040 Search - By Case Admin</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Annual_1040_With_Tax_Data_Records_Mgmt','UserForms',',scrollbars,resizable','')">Report - Annual 1040 Search - By Case Admin - All</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Workflow_Assigned_By_User','UserForms',',scrollbars,resizable','')">Report - Assigned Workflow Items</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_BOH','UserForms',',scrollbars,resizable','')">Report - Balance On Hand</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Cases_Filed_And_Closed_Closed_Date','UserForms',',scrollbars,resizable','')">Report - Case Balance - New and Closed Cases - Closed Date</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Cases_Filed_And_Closed_Final_Report_Date','UserForms',',scrollbars,resizable','')">Report - Case Balance - New and Closed Cases - Final Report Date</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Cases_Atty','UserForms',',scrollbars,resizable','')">Report - Case Count By Attorney</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Case_Count_By_CaseAdmin','UserForms',',scrollbars,resizable','')">Report - Case Count By Case Administrator</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Case_Filings_By_Date_Range','UserForms',',scrollbars,resizable','')">Report - Cases Filed - By Date Range</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Cases_Over_XX_Months','UserForms',',scrollbars,resizable','')">Report - Cases over 55 Months</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Objection_to_Claim','UserForms',',scrollbars,resizable','')">Report - Claim Objections - By Date Range</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Confirmation_Atty_Follow_Up','UserForms',',scrollbars,resizable','')">Report - Confirmation Hearings - Attorney Follow Up</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Confirmation_CA_Follow_Up','UserForms',',scrollbars,resizable','')">Report - Confirmation Hearings - CA Follow Up</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Confirmed_Cases_Review','UserForms',',scrollbars,resizable','')">Report - Confirmed Cases By Date Range</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Debtor_Refunds','UserForms',',scrollbars,resizable','')">Report - Debtor Refunds</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Delinquency','UserForms',',scrollbars,resizable','')">Report - Delinquency</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Delinquency_ByDate','UserForms',',scrollbars,resizable','')">Report - Delinquency - Before Date</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Delinquency_MGMT','UserForms',',scrollbars,resizable','')">Report - Delinquency - Management</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Documents_Created_By_Date_Range','UserForms',',scrollbars,resizable','')">Report - Documents Created and Processed - Management</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Email_Sent_History_CB','UserForms',',scrollbars,resizable','')">Report - Email Sent History</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Filing_Fees_Owed','UserForms',',scrollbars,resizable','')">Report - Filing Fees Owed</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Hold_Perm','UserForms',',scrollbars,resizable','')">Report - Hold Perm</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Hold_Temp','UserForms',',scrollbars,resizable','')">Report - Hold Temp</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_IRS_Refunds_Committed','UserForms',',scrollbars,resizable','')">Report - IRS Refunds Committed List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Monthly_Holds','UserForms',',scrollbars,resizable','')">Report - Monthly Hold Funds List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Cases_to_Confirm_Non-standard','UserForms',',scrollbars,resizable','')">Report - Order Confirming Non-standard Plan - Case List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_UCI_Payees_EFT','UserForms',',scrollbars,resizable','')">Report - Payee UCI Report - EFT Creditors</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Property_Taxes','UserForms',',scrollbars,resizable','')">Report - Property Tax Search</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Property_Taxes_Balance_Pierce_County|id=485','UserForms',',scrollbars,resizable','')">Report - Property Taxes - Balance Owed - Pierce County Treasurer</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Cases_to_Confirm_Recommendation','UserForms',',scrollbars,resizable','')">Report - Recommendation for Order Confirming Plan - Case List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Reserve_List','UserForms',',scrollbars,resizable','')">Report - Reserve List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Unclaimed_Funds','UserForms',',scrollbars,resizable','')">Report - Unclaimed Funds</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Unconfirmed_Cases','UserForms',',scrollbars,resizable','')">Report - Unconfirmed Case List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Cases_by_DateConf_Debtor_LastName_CB','UserForms',',scrollbars,resizable','')">Report Cases by Date Confirmed Debtor Last Name</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_HoldPerm_CB','UserForms',',scrollbars,resizable','')">Report Hold Perm by CA First Name</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_User_Activity_Audit','UserForms',',scrollbars,resizable','')">Report User Activity Audit</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setPSProg.aspx?wsid=43','UserForms',',scrollbars,resizable','')">Search AKA/DBA Admin Worksheet</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setform.aspx?&amp;qs=progskip=~|rpt=TAC_Report_Notice_Final_Cure_Pmt_Case_List','UserForms',',scrollbars,resizable','')">TAC Notice of Final Cure - Case List</option><option value="WCopenWindow('PleaseWaitStatic.aspx?prog=setPSProg.aspx?wsid=29','UserForms',',scrollbars,resizable','')">Tax Return Admin Worksheet</option><option value="WCopenWindow('ViewArchivedReports.aspx?progskip=~','ReserveReport1',',scrollbars,resizable','All');">View Archived Reports</option><option value="WCgoToApp('UserLoginTracking.aspx')">View Logged-In Users</option><option value="WCopenWindow('WorksheetDashboard.aspx?progskip=~','ReserveReport1',',scrollbars,resizable','All');">Worksheet Dashboard</option></select>
+                        </font>
+                    </td>
+
+                
+                    <td width="14%" nowrap="nowrap" bgcolor="#17335d">
+                        <font color="#FFFFFF"><b>&nbsp;
+                            <a class="coSect1" style="cursor:pointer" onclick="WCgoToApp('LogOutPrompt.aspx')">LogOut Now</a></b>
+                        </font>
+                    </td>
+                </tr>
+            </tbody></table>
+        </td>
+    </tr>
+</tbody></table>
+</div>
+
+			</div>
+		</div>
+
+
+
+<div id="SoftwareCaseHeading" style="overflow: hidden; display: inline; position: relative; top: 0px; left: 0px; width: 100%; height: 100px;">
+            
+
+<table id="CaseHeader" width="100%" cellspacing="0" cellpadding="0" border="0">
+<tbody><tr><td width="100%">
+<table style="border-collapse:collapse" width="100%" cellspacing="0" cellpadding="0" bordercolor="#DDDDDD" border="0">
+	<tbody><tr>
+		<td colspan="2" nowrap="">
+			<table style="border-collapse:collapse" id="AutoNumber4" width="100%" cellspacing="0" cellpadding="3" bordercolor="#DDDDDD" border="0">
+			<tbody><tr>	
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="AutoNumber7" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>	
+    				        <td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCgoToAppReset('inqCaseMain.aspx?xWin=&amp;MenuTab=0','')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Case&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+				
+				<td style="" width="1%" bgcolor="#006699" align="center">
+					<table style="border-collapse:collapse" id="Table1" width="100%" cellspacing="0" cellpadding="0" bordercolor="#006699" border="1">
+						<tbody><tr>
+    						<td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCgoToAppReset('inqCaseParties.aspx?xWin=&amp;MenuTab=1','')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Parties&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+
+        		<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table2" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+    						<td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCgoToAppReset('inqCaseScheds.aspx?xWin=&amp;MenuTab=2','')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Pay Schedules&nbsp;</td>			
+						</tr>
+					</tbody></table>
+				</td>
+
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table3" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+
+						    <td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCgoToAppReset('CasePayees.aspx?xWin=&amp;MenuTab=3','')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Payees&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table4" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+							<td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCgoToAppReset('inqCaseFinancials.aspx?xWin=&amp;MenuTab=4','')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Financials&nbsp;</td>			
+						</tr>
+					</tbody></table>
+				</td>
+
+        		<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table5" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+							<td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="ch_prevs='';WCgoToAppReset('PlanCalc1.aspx?CaseNumber=1741060&amp;prevs='+ch_prevs+'&amp;prog=inqCaseMain&amp;runas=0&amp;usercodeid=65&amp;ID=bc71dd0a-756d-49ec-9ad5-c46f36960415&amp;MenuTab=5','')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;PlanCalc 1&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+
+				
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table6" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+							<td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=PlanCalc3Inputs.aspx?&amp;qs=progskip=~','PlanCalc3_651',',scrollbars,resizable','Case');" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;PlanCalc 3&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table7" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+
+								<td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=inqCaseForum.aspx?&amp;qs=progskip=~','Forum_651',',resizable,scrollbars','Case')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Forum&nbsp;</td>
+
+						</tr>
+					</tbody></table>
+				</td>
+
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table9" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+						    <td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=inqCaseDocs.aspx?&amp;qs=progskip=~|xWin=','DocumentTree_651',',scrollbars,resizable','Case')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Documents (0)&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+				
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table10" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+							<td class="sectionLink" style="cursor: pointer; cursor: pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCgoToAppReset('inqCaseDocket.aspx?xWin=&amp;MenuTab=10','')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Docket&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+		
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table11" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+                            
+						    <td class="sectionLink" style="cursor: pointer; cursor: pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=DocCaseScanFrame.aspx?q=1|cid=22917','DocScan_651',',scrollbars,resizable','Case')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Scan&nbsp;</td>
+                            
+						</tr>    
+					</tbody></table>
+				</td>
+
+
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table12" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+    						<td class="sectionLink" style="cursor: pointer; cursor: pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=DocCaseScanFrame.aspx?q=|xWin=|cid=22917','DocLink_651',',scrollbars,resizable','Case')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Attach&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table13" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+
+								<td class="sectionLink" style="cursor: pointer; cursor: pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCgoToAppReset('inqCaseMatters.aspx?xWin=&amp;MenuTab=13','')" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Matters&nbsp;</td>
+							
+    					</tr>
+   					</tbody></table>
+				</td>
+				
+				<td style="" width="1%" bgcolor="" align="center">
+					<table style="border-collapse:collapse" id="Table14" width="100%" cellspacing="0" cellpadding="0" bordercolor="#C0C0C0" border="1">
+						<tbody><tr>
+                             <td class="sectionLink" style="cursor:pointer;" onmouseover="this.bgColor='#D3D3D3'" ;="" onmouseout="this.bgColor='#FFFFFF'" onclick="WCopenWindow('PleaseWaitStatic.aspx?prog=CaseWorksheet.aspx?qs=progskip=~|xWin=|wstype=40','Worksheet_651',',scrollbars,resizable','Case');" nowrap="" bgcolor="#FFFFFF" align="center">&nbsp;Worksheets&nbsp;</td>
+						</tr>
+					</tbody></table>
+				</td>
+
+			</tr>
+			</tbody></table>
+		</td>
+	</tr>		
+
+      <tr bgcolor="#006699">
+		<td bordercolor="#E1F2F2" class="profheadSm" width="50%" nowrap="" align="left">&nbsp;</td>
+		<td bordercolor="#E1F2F2" style="color:white" class="profheadSm" width="50%" nowrap="" align="right"><select style="border-radius: 4px; color: white; background-color: #216797; font: 400 12px Arial;" name="UserWorksheets" id="UserWorksheets" onchange="displayWorksheet(document.getElementById('UserWorksheets').options[document.getElementById('UserWorksheets').selectedIndex].value);document.getElementById('UserWorksheets').selectedIndex=0"><option value="">Select Worksheet</option><option value="40">Confirmation Worksheet (NEW)</option><option value="23">180 Day Review Worksheet</option><option value="14">341 Worksheet (OLD)</option><option value="32">Amended Schedules A B C</option><option value="33">Amended Schedules D E F</option><option value="34">Amended Schedules G</option><option value="35">Amended Schedules H</option><option value="36">Amended Schedules I J</option><option value="38">Amended SCMI (Form 122C)</option><option value="37">Amended SOFA (Form 107)</option><option value="26">Completed Case Worksheet</option><option value="39">Confirmation Review Worksheet</option><option value="21">Confirmation Worksheet (OLD)</option><option value="27">Dismissal Conversion Worksheet</option><option value="44">EMBD - Form Type Link Details</option><option value="45">Liquidation Analysis (NEW)</option><option value="15">Liquidation Analysis (OLD)</option><option value="47">May 2021 2nd Version</option><option value="46">May 2021 Training</option><option value="13">Mid Case Audit</option><option value="41">Plan Narrative Worksheet</option></select>&nbsp;&nbsp;&nbsp;Recently Accessed Cases&nbsp;
+
+						<select style="text-rendering: auto;color: initial;letter-spacing: normal;word-spacing: normal; text-transform: none;text-indent: 0px;text-shadow: none;display: inline-block;text-align: start;margin: 0em;font: 400 12px Arial;" name="RecentCases" id="RecentCasesID" onchange="WCgoToApp(document.getElementById('RecentCasesID').options[document.getElementById('RecentCasesID').selectedIndex].value);document.getElementById('RecentCasesID').selectedIndex=0">
+			
+				<option selected="" value="ChangeCase.aspx?cid=22917">17-41060-BDL Larry Jack Ellis Jr</option>	
+			
+				<option value="ChangeCase.aspx?cid=26299">20-40779-MJH Gary Gregory Dorris</option>	
+			
+				<option value="ChangeCase.aspx?cid=26220">20-40486-BDL Steven Arthur Putman</option>	
+			
+				<option value="ChangeCase.aspx?cid=26271">20-40668-MJH Joshua J Stoken</option>	
+			
+				<option value="ChangeCase.aspx?cid=26717">21-40513-MJH Denise Michele Solis</option>	
+			
+				<option value="ChangeCase.aspx?cid=26598">20-42635-BDL Tanu Billy Tema</option>	
+			
+				<option value="ChangeCase.aspx?cid=26725">21-40569-BDL Sondra Jean Jutte</option>	
+			
+				<option value="ChangeCase.aspx?cid=26749">21-40784-MJH David Kyeongsoo Han</option>	
+			
+				<option value="ChangeCase.aspx?cid=22431">16-44318-MJH Micheal Shane White</option>	
+			
+				<option value="ChangeCase.aspx?cid=25740">19-42680-BDL Herbert Wallace Hyde</option>	
+			
+				<option value="ChangeCase.aspx?cid=26056">19-44015-MJH John Christopher Mejia</option>	
+			
+				<option value="ChangeCase.aspx?cid=26144">20-40191-MJH Richard Edward Dawson</option>	
+			
+				<option value="ChangeCase.aspx?cid=26297">20-40777-BDL Denice Helen Johnson</option>	
+			
+				<option value="ChangeCase.aspx?cid=26439">20-41656-MJH Brandon James Van Ditto</option>	
+			
+				<option value="ChangeCase.aspx?cid=23088">17-41754-MJH Jeffrey A Balkus</option>	
+			
+				<option value="ChangeCase.aspx?cid=24196">18-41282-MJH Donaubrey Dewayne Stoker</option>	
+			
+				<option value="ChangeCase.aspx?cid=26734">21-40652-MJH Carolyn D Nelson</option>	
+			
+				<option value="ChangeCase.aspx?cid=26690">21-40335-MJH Erik Robert Baude</option>	
+			
+				<option value="ChangeCase.aspx?cid=25832">19-43128-MJH Myra Marie Cruz</option>	
+			
+				<option value="ChangeCase.aspx?cid=26090">20-40037-MJH Cicely Ann Perry</option>	
+			
+				<option value="ChangeCase.aspx?cid=25513">19-41900-BDL James Allan Salo</option>	
+			
+				<option value="ChangeCase.aspx?cid=26736">21-40666-BDL Bonnie Rose Marshall</option>	
+			
+				<option value="ChangeCase.aspx?cid=25658">19-42501-BDL Joseph Michael Cavin</option>	
+			
+				<option value="ChangeCase.aspx?cid=26512">20-42092-MJH William Edward Keefer</option>	
+			
+				<option value="ChangeCase.aspx?cid=26671">21-40234-MJH Albert Fuentes III</option>	
+
+			</select>		
+		</td>
+	</tr>
+
+	</tbody></table>
+
+  		<table style="border-collapse:collapse" id="AutoNumber2" width="100%" cellspacing="0" bordercolor="#006699" border="0">
+
+	   <tbody><tr>
+        <td colspan="2" width="100%">
+        <table style="border-collapse:collapse" id="AutoNumber3" width="100%" bordercolor="#99CCCC" border="1" bgcolor="#F4FBFB">
+          <tbody><tr>
+            <td class="companyHead" bordercolor="#E1F2F2" width="15%" nowrap="">&nbsp;<span title="Case ID: 22917">17-41060-BDL</span>&nbsp;</td>
+            <td class="companyHead" bordercolor="#E1F2F2" colspan="2" width="53%" nowrap="">Larry Jack Ellis Jr&nbsp;<font class="altText1"> (XXX-XX-3087)&nbsp;</font>
+            
+	            <a style="cursor:pointer" onmouseover="this.T_WIDTH=350;this.T_OFFSETX=20;this.T_BELOW=true;this.T_OFFSETY=-40;this.T_STATIC=true;this.T_TITLE='Debtor 1 Address';this.T_BGCOLOR='#ffffcc';return escape('14121 9th Ave Ct E<br>Tacoma, WA 98445-0000<br>253-973-0699<br>Email: charwila6@hotmail.com<br>DBA: fdba: Northwest Craftsman Resources LLC')"><img alt="" src="images/moreinfo.gif" width="12" height="12" border="0"></a>
+			
+			</td>
+            <td class="companyHead" bordercolor="#E1F2F2" width="17%" nowrap="" align="right">&nbsp;
+            
+            </td>
+            <td class="sectionSubHeadSm" width="8%" nowrap="">Bar Date:&nbsp;
+            
+            <a style="cursor:pointer" onmouseover="this.T_FONTSIZE='12px';this.T_LEFT=true;this.T_OFFSETX=600;this.T_OFFSETY=-45;this.T_STATIC=true;this.T_TITLE='BAPCPA Dates';this.T_BGCOLOR='#ffffcc';return escape('<table cellspacing=0 cellpadding=0><tr><td align=right nowrap>Petition filed:</td><td align=left nowrap>&nbsp;<b>Wednesday, March 22, 2017</b></td><td align=right nowrap>&nbsp;<b>90</b> Days before filing:</td><td align=left nowrap>&nbsp;<b>Thursday, December 22, 2016</td></tr><tr><td align=right nowrap>&nbsp;<b>730</b> Days before filing:</td><td align=left nowrap>&nbsp;<b>Monday, March 23, 2015</b></td><td align=right nowrap>&nbsp;&nbsp;&nbsp;<b>910</b> Days before filing:</td><td align=left nowrap>&nbsp;<b>Wednesday, September 24, 2014</b></td></tr><tr><td align=right nowrap>&nbsp;<b>1215</b> Days before filing:</td><td align=left nowrap>&nbsp;<b>Saturday, November 23, 2013</td><td align=right nowrap>&nbsp;<b>46</b> Days after filing:</td><td align=left nowrap>&nbsp;<b>Sunday, May 7, 2017</td></tr><tr><td align=right nowrap>&nbsp;<b>180</b> Days before filing:</td><td align=left nowrap>&nbsp;<b>Friday, September 23, 2016</td><td align=right nowrap>&nbsp;<b>120</b> Days after 341:</td><td align=left nowrap>&nbsp;<b>Friday, August 18, 2017</td></tr><tr><td align=right nowrap>&nbsp;<b>120</b> Days after filed:</td><td align=left nowrap>&nbsp;<b>Thursday, July 20, 2017</td><td></td><td></td></tr></table>')"><img alt="" src="images/moreinfo.gif" width="12" height="12" border="0"></a></td>
+            
+            <td class="sectionSubHeadSm" width="7%" nowrap="" align="left">&nbsp;7/19/2017 (has passed)&nbsp;&nbsp;9/18/2017 (has passed)</td>
+          </tr>
+          <tr>
+            
+            <td bordercolor="#E1F2F2" width="15%" nowrap=""></td>
+            
+            <td class="companyHead" bordercolor="#E1F2F2" colspan="2" width="53%" nowrap="">Pamela Yvonne Ellis&nbsp;<font class="altText1"> (XXX-XX-2057)&nbsp;</font>
+            
+	            <a style="cursor:pointer" onmouseover="this.T_WIDTH=350;this.T_OFFSETX=20;this.T_BELOW=true;this.T_OFFSETY=-50;this.T_STATIC=true;this.T_TITLE='Debtor 2 Address';this.T_BGCOLOR='#ffffcc';return escape('14121 9th Ave Ct E<br>Tacoma, WA 98445-0000<br>253-973-0980<br>Email: pyellis6@yahoo.com')"><img alt="" src="images/moreinfo.gif" width="12" height="12" border="0"></a>
+			
+            </td>
+            <td class="companyHead" bordercolor="#E1F2F2" width="17%" nowrap="" align="right">$1,220.00 MO&nbsp;
+            
+            	<a style="cursor:pointer" onmouseover="this.T_MOVEY=5;this.T_FONTSIZE='12px';this.T_LEFT=true;this.T_OFFSETX=200;this.T_OFFSETY=-60;this.T_STATIC=true;this.T_TITLE='Debtor 2 Paying';this.T_BGCOLOR='#ffffcc';return escape('<table border=1 style=border-color:#666666 cellpadding=0 cellspacing=0 width=100% ><tr><td nowrap><b>Pamela Yvonne Ellis</b><br>14121 9th Ave Ct E<br><br><br>Tacoma&nbsp;WA&nbsp;98445-0000<br>(253) 973-0980</td></tr></table>')"><img alt="" src="images/moreinfo.gif" width="12" height="12" border="0"></a>
+            
+            </td>
+            <td class="sectionSubHeadSm" width="8%" nowrap="">Confirmed:&nbsp;</td>
+            <td class="sectionSubHeadSm" width="7%" nowrap="" align="left">&nbsp;5/24/2017&nbsp;&nbsp;Bar Check is 
+          	
+          		YES
+          	
+          	</td>
+          </tr>
+          <tr>
+            <td bordercolor="#E1F2F2" width="15%" nowrap="" align="left">
+
+             
+                &nbsp;<img src="images/EmailIcon.png" alt="Email" style="cursor:pointer" title="Send Email regarding this Case" onclick="modalEmail(22917)" width="17" height="17">
+            
+			    &nbsp;<img style="cursor:pointer" alt="Create PDF" title="Create PDF" onclick="PrintPDFPage(0,&quot;PrintInquiry&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;)" src="images/pdficon.gif" width="17" height="17">&nbsp;
+			
+			&nbsp;<img alt="" style="cursor:pointer" onclick="WCaddTickle('y','')" onmouseover="this.T_WIDTH=350;this.T_TITLE='Tickle Item';this.T_BGCOLOR='#ffffcc';return escape('Click here to add a reminder item to this case that will display on your Inbox at the time specified.  The item can display a brief note of what the reminder is regarding')" src="images/TickleMe.gif">
+
+
+                <!-- -->
+
+    <a style="cursor:pointer" onmouseover="this.T_WIDTH=350;this.T_OFFSETX=20;this.T_BELOW=true;this.T_OFFSETY=-40;this.T_STATIC=true;this.T_TITLE='At-A-Glance Worksheet';this.T_BGCOLOR='#f0ffff';return escape('<div id=\'contentDivImg_176\' style=\'display: block; padding: 0 10 0 10;width: fit-content;\'> <div style=\'padding: 0; margin: 0; float:left;\'> <p style=\'margin: 0; float:left; padding: 0 20 0 0;\'><table class=\'table table-condensed table-striped table-bordered\' style=\'background-color:#FFFFFF; width:auto;border:1px solid black\'>    <tbody>        <tr>            <td>Equity: </td>            <td><strong><span style=\'color:#000000;font-size:12px;\'>$8,105.65</span></strong></td>        </tr>        <tr>            <td>IV.E.: </td>            <td><strong><span style=\'color:#000000;font-size:12px;\'>$0.00</span></strong></td>        </tr>          <tr>            <td>TPI: </td>            <td><span style=\'color:#000000;font-size:12px;\'><strong><span id=\'LabelCustomFont\' style=\'color:#000000;font-size:12;\'>$66,302.82</span></strong></span></td>        </tr>        <tr>            <td>TPILR: </td>            <td><span style=\'color:#000000;font-size:12px;\'><strong>$66,231.18</span></strong></td>        </tr>            <td>Base: </td>            <td><span style=\'color:#000000;font-size:12px;\'><strong><span id=\'LabelCustomFont\' style=\'color:#000000;font-size:12;\'>$0.00</span></strong></span></td>        </tr>        <tr>            <td>Base Balance: </td>            <td><strong><span style=\'color:#000000;font-size:12px;\'>$0.00</span></strong></td>        </tr>             <tr>            <td>Delinquency to be Cured (By Order): </td>            <td><strong><span style=\'color:#000000;font-size:12px;\'>$0.00</span></strong></td>        </tr>            </tbody></table></div> </div>')"><img alt="" src="images/BulletinBoard/Sheets.gif" width="20" height="20" border="0"></a>
+                <!-- -->
+            </td>
+
+            <td class="profhead" bordercolor="#E1F2F2" colspan="3" width="69%" nowrap=""><span style="color:#069">Attorney:&nbsp;DOROTHY A BARTHOLOMEW ATTY</span>&nbsp;<a style="cursor:pointer" onmouseover="this.T_WIDTH=350;this.T_STATIC=true;this.T_TITLE='Attorney Address';this.T_BGCOLOR='#ffffcc';return escape('STE C<br>5310 12TH ST E<br>FIFE, WA 984240000<br>253-922-2016<br>dorothyb@findbankruptcy.com<br>Judge: Brian D. Lynch')"><img alt="" src="images/moreinfo.gif" width="12" height="12" border="0"></a>
+            
+            </td>
+            <td class="sectionSubHeadSm" width="8%" nowrap="">Case Status:&nbsp;&nbsp;</td>
+            
+            <td class="sectionSubHeadClosed" width="7%" nowrap="" align="left">&nbsp;COMPLETED                                          (4/30/2021)</td>
+            
+          </tr>
+        </tbody></table>
+        </td>
+      </tr>
+    </tbody></table>
+	</td></tr></tbody></table>
+    
+<script type="text/javascript">
+
+    function modalEmail()
+        {
+        WCemail('EmailDoc.aspx?caseid='+22917)
+        }
+
+    function displayWorksheet(wsid) {
+
+        WCopenWindow('PleaseWaitStatic.aspx?prog=CaseWorksheet.aspx?qs=progskip=~|xWin=|wstype=' + wsid, 'Worksheet_651' + wsid,',scrollbars,resizable','Case');
+
+    }
+
+
+</script>    
+
+
+</div>
+<script language="JavaScript" type="text/javascript" src="wz_tooltip.js"></script><div onclick="tt_ShowDiv(false)" id="tOoLtIp1911" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Tickle Item</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">Click here to add a reminder item to this case that will display on your Inbox at the time specified.  The item can display a brief note of what the reminder is regarding</font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp017" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Attorney Address</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">STE C<br>5310 12TH ST E<br>FIFE, WA 984240000<br>253-922-2016<br>dorothyb@findbankruptcy.com<br>Judge: Brian D. Lynch</font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp016" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>At-A-Glance Worksheet</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#f0ffff"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066"><div id="contentDivImg_176" style="display: block; padding: 0 10 0 10;width: fit-content;"> <div style="padding: 0; margin: 0; float:left;"> <p style="margin: 0; float:left; padding: 0 20 0 0;"><table class="table table-condensed table-striped table-bordered" style="background-color:#FFFFFF; width:auto;border:1px solid black">    <tbody>        <tr>            <td>Equity: </td>            <td><strong><span style="color:#000000;font-size:12px;">$8,105.65</span></strong></td>        </tr>        <tr>            <td>IV.E.: </td>            <td><strong><span style="color:#000000;font-size:12px;">$0.00</span></strong></td>        </tr>          <tr>            <td>TPI: </td>            <td><span style="color:#000000;font-size:12px;"><strong><span id="LabelCustomFont" style="color:#000000;font-size:12;">$66,302.82</span></strong></span></td>        </tr>        <tr>            <td>TPILR: </td>            <td><span style="color:#000000;font-size:12px;"><strong>$66,231.18</strong></span></td>        </tr>            <tr><td>Base: </td>            <td><span style="color:#000000;font-size:12px;"><strong><span id="LabelCustomFont" style="color:#000000;font-size:12;">$0.00</span></strong></span></td>        </tr>        <tr>            <td>Base Balance: </td>            <td><strong><span style="color:#000000;font-size:12px;">$0.00</span></strong></td>        </tr>             <tr>            <td>Delinquency to be Cured (By Order): </td>            <td><strong><span style="color:#000000;font-size:12px;">$0.00</span></strong></td>        </tr>            </tbody></table></p></div> </div></font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp015" style="position:absolute;z-index:1010;left:0px;top:0px;width:300px;visibility:hidden;"><table width="300" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:12px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Debtor 2 Paying</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:12px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066"><table style="border-color:#666666" width="100%" cellspacing="0" cellpadding="0" border="1"><tbody><tr><td nowrap=""><b>Pamela Yvonne Ellis</b><br>14121 9th Ave Ct E<br><br><br>Tacoma&nbsp;WA&nbsp;98445-0000<br>(253) 973-0980</td></tr></tbody></table></font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp014" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Debtor 2 Address</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">14121 9th Ave Ct E<br>Tacoma, WA 98445-0000<br>253-973-0980<br>Email: pyellis6@yahoo.com</font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp013" style="position:absolute;z-index:1010;left:0px;top:0px;width:300px;visibility:hidden;"><table width="300" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:12px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>BAPCPA Dates</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:12px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066"><table cellspacing="0" cellpadding="0"><tbody><tr><td nowrap="" align="right">Petition filed:</td><td nowrap="" align="left">&nbsp;<b>Wednesday, March 22, 2017</b></td><td nowrap="" align="right">&nbsp;<b>90</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Thursday, December 22, 2016</b></td></tr><tr><td nowrap="" align="right">&nbsp;<b>730</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Monday, March 23, 2015</b></td><td nowrap="" align="right">&nbsp;&nbsp;&nbsp;<b>910</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Wednesday, September 24, 2014</b></td></tr><tr><td nowrap="" align="right">&nbsp;<b>1215</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Saturday, November 23, 2013</b></td><td nowrap="" align="right">&nbsp;<b>46</b> Days after filing:</td><td nowrap="" align="left">&nbsp;<b>Sunday, May 7, 2017</b></td></tr><tr><td nowrap="" align="right">&nbsp;<b>180</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Friday, September 23, 2016</b></td><td nowrap="" align="right">&nbsp;<b>120</b> Days after 341:</td><td nowrap="" align="left">&nbsp;<b>Friday, August 18, 2017</b></td></tr><tr><td nowrap="" align="right">&nbsp;<b>120</b> Days after filed:</td><td nowrap="" align="left">&nbsp;<b>Thursday, July 20, 2017</b></td><td></td><td></td></tr></tbody></table></font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp012" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Debtor 1 Address</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">14121 9th Ave Ct E<br>Tacoma, WA 98445-0000<br>253-973-0699<br>Email: charwila6@hotmail.com<br>DBA: fdba: Northwest Craftsman Resources LLC</font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp00" style="position:absolute;z-index:1010;left:0px;top:0px;width:180px;visibility:hidden;"><table width="180" cellspacing="0" cellpadding="0" border="0" bgcolor="#267BBD"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Version Info</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">Rev 9.0.300 released 2/2/2021<br>RPT: 900_2020-05-12<br>UDF: 900_2020-05-28</font></td></tr></tbody></table></td></tr></tbody></table></div>
+
+
+
+
+<script language="JavaScript" type="text/javascript" src="Keys.js"></script>
+<script language="JavaScript" type="text/javascript" src="GridLock.js"></script>
+<script language="JavaScript" type="text/javascript" src="Sticky.js"></script>
+
+<script language="JavaScript" type="text/javascript">
+
+    GLhasPaging = 'false'
+    GLoffx = '0'
+    GLoffy = '20'
+    WCszHoff = 'dgrdCaseNames'
+
+function ChooseStatus(DocID,StatusID)
+	{
+	if (WCszBT == 'ie') {var objHTTP = new ActiveXObject("Microsoft.XMLHTTP");} else {var objHTTP = new XMLHttpRequest();}
+    var szURL = 'xmlEmployerTypeLink.aspx?id1='+DocID+'&id2='+StatusID;
+    var szHttpMethod = "POST";
+    objHTTP.open(szHttpMethod, szURL, false);
+    objHTTP.send('1');
+    if ('' == '')
+        {
+        if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&q= &spl='+document.getElementById('div-datagrid1').scrollLeft+'&spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&q= &spl='+document.getElementById('div-datagrid1').scrollLeft+'&spt='+document.getElementById('div-datagrid1').scrollTop)}
+        }
+    else
+        {
+        WCgoToApp(location.href.substring(0,location.href.indexOf('&q='))+'&q= &spl='+document.getElementById('div-datagrid1').scrollLeft+'&spt='+document.getElementById('div-datagrid1').scrollTop)
+        }
+	}
+	
+function lockColumns()
+    {
+    WCdisableScreenOverflow();
+    setTimeout("logDDL('inqCaseParties',document.getElementById('ColumnDDL').selectedIndex);resizeDivs(document.getElementById('ColumnDDL').selectedIndex+1);WCenableScreenOverflow()",0);
+    }
+
+</script>
+
+<title>13Software TEST1_db</title>
+
+
+
+
+<input id="PleaseWait" name="PleaseWait" type="button" value="YOU ARE USING TEST SOFTWARE 
+
+" style="color:black     ;font-size:large;font-weight:bold;background-color:white;width:1px;height:1px;left:0;top:0;visibility:hidden;position:absolute;z-index:99;opacity:0.5;">
+<form name="inqCaseParties" method="post" action="inqCaseParties.aspx?NewCase=y&amp;titrn=changecase" id="inqCaseParties" onsubmit="if (WCszBV == 'iPad') {WCdisableScreenOverflow();};WCsetApplication('clicked_'+WCszUC+'_'+WCszWN+'!1');">
+<div>
+<input type="hidden" name="__VIEWSTATE" id="__VIEWSTATE" value="/wEPDwUKLTgwNjA0MTA2OWRkvcZvQ+JOwi/LQWQEbXSwbpbEGoM=">
+</div>
+
+<div>
+
+	<input type="hidden" name="__VIEWSTATEGENERATOR" id="__VIEWSTATEGENERATOR" value="95867D9E">
+	<input type="hidden" name="__EVENTVALIDATION" id="__EVENTVALIDATION" value="/wEWCgLh9cPdBALO6ajUDALP6ajUDALM6ajUDALN6ajUDALK6ajUDALL6ajUDALI6ajUDALZ6ajUDALW6ajUDG8n9QhjLm5LG8Q4aVVh2H6f1Ewu">
+</div>
+<table id="header"><tbody><tr><td></td></tr></tbody></table>
+<table id="header1" width="100%"><tbody><tr><td width="100%">
+
+<table style="border-collapse:collapse" width="100%" cellspacing="0" bordercolor="#111111" border="0">
+	<tbody><tr>
+        <td valign="top">
+			<table style="border-collapse:collapse" cellspacing="0" cellpadding="2" border="0">
+				<tbody><tr>
+					<td style=""> 
+<script language="javascript">
+
+	function next()
+	    {
+		WCgoToApp('ChangeCase.aspx?progskip=~&direction=next&AccessBy='+document.getElementById('AccessByID').value)
+	    }
+
+	function previous()
+	    {
+		WCgoToApp('ChangeCase.aspx?progskip=~&direction=prev&AccessBy='+document.getElementById('AccessByID').value)
+	    }
+	
+	function same()
+	    {
+		WCgoToApp('ChangeCase.aspx?progskip=~&direction=same&AccessBy='+document.getElementById('AccessByID').value)
+	    }
+
+</script>
+
+<table width="100%">
+<tbody><tr>
+
+		<td>
+		<table cellspacing="0" cellpadding="0" bordercolor="#CCCCCC" border="1">
+		<tbody><tr>
+		<td width="45%" nowrap="" bgcolor="#EEEEEE" align="center"><a style="cursor:pointer;text-decoration:none" onclick="previous()"><b>Previous</b></a></td>
+		
+		<td style="cursor:pointer" onmouseover="this.T_FONTFACE='verdana,geneva,sans-serif';this.T_BELOW=true;this.T_WIDTH=500;this.T_OFFSETX=-85;this.T_OFFSETY=0;this.T_STICKY=true;this.T_STATIC=true;this.T_TITLE='Additional Cases (Accessing by Case Number)';this.T_BGCOLOR='#ffffcc';return escape('<table border=0 cellspacing=0 cellpadding=0 width=100% height=10><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22904\');><td nowrap width=1% >17-40978&nbsp;●</td><td nowrap width=100% >Rabago,&nbsp;Rosaline&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22905\');><td nowrap width=1% >17-40991&nbsp;●</td><td nowrap width=100% >Moffitt Jr,&nbsp;Donald&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22906\');><td nowrap width=1% >17-40996&nbsp;●</td><td nowrap width=100% >Music,&nbsp;Brianna&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22907\');><td nowrap width=1% >17-41004&nbsp;●</td><td nowrap width=100% >Emery Sr,&nbsp;Gerald&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22908\');><td nowrap width=1% >17-41010&nbsp;●</td><td nowrap width=100% >Luce,&nbsp;Philip&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22909\');><td nowrap width=1% >17-41023&nbsp;●</td><td nowrap width=100% >Stinson,&nbsp;Ronald&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22910\');><td nowrap width=1% >17-41027&nbsp;●</td><td nowrap width=100% >Day,&nbsp;Joshua&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22911\');><td nowrap width=1% >17-41033&nbsp;●</td><td nowrap width=100% >Keefer,&nbsp;William&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22912\');><td nowrap width=1% >17-41034&nbsp;●</td><td nowrap width=100% >Fijalka,&nbsp;David&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22913\');><td nowrap width=1% >17-41040&nbsp;●</td><td nowrap width=100% >Gabriel,&nbsp;Imelda&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22914\');><td nowrap width=1% >17-41042&nbsp;●</td><td nowrap width=100% >Garrison,&nbsp;Molly&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22915\');><td nowrap width=1% >17-41050&nbsp;●</td><td nowrap width=100% >Ferreira,&nbsp;Michelle&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22916\');><td nowrap width=1% >17-41051&nbsp;●</td><td nowrap width=100% >Crawford,&nbsp;Ryan&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#CCCCFF\'; bgcolor=\'#CCCCFF\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22917\');><td nowrap width=1% >17-41060&nbsp;<font face=Unicode>⇨</font></td><td nowrap width=100% >Ellis Jr,&nbsp;Larry&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22918\');><td nowrap width=1% >17-41062&nbsp;●</td><td nowrap width=100% >Heinig,&nbsp;Steven&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22919\');><td nowrap width=1% >17-41070&nbsp;●</td><td nowrap width=100% >Davis,&nbsp;Suk&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22920\');><td nowrap width=1% >17-41072&nbsp;●</td><td nowrap width=100% >Sutliff,&nbsp;Timothy&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22921\');><td nowrap width=1% >17-41079&nbsp;●</td><td nowrap width=100% >Mitchell,&nbsp;Randal&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22922\');><td nowrap width=1% >17-41081&nbsp;●</td><td nowrap width=100% >Meisner,&nbsp;Gregg&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22923\');><td nowrap width=1% >17-41083&nbsp;●</td><td nowrap width=100% >Norris,&nbsp;Dianne&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22931\');><td nowrap width=1% >17-41086&nbsp;●</td><td nowrap width=100% >Gofman,&nbsp;Yelena&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22924\');><td nowrap width=1% >17-41087&nbsp;●</td><td nowrap width=100% >Tobin,&nbsp;Earl&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22925\');><td nowrap width=1% >17-41088&nbsp;●</td><td nowrap width=100% >Smith,&nbsp;Ryan&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22926\');><td nowrap width=1% >17-41089&nbsp;●</td><td nowrap width=100% >Boyd,&nbsp;Christopher&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22927\');><td nowrap width=1% >17-41090&nbsp;●</td><td nowrap width=100% >Riggan,&nbsp;Jimmie&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22928\');><td nowrap width=1% >17-41091&nbsp;●</td><td nowrap width=100% >Swanson,&nbsp;Derek&nbsp;</td></tr><tr style=font-size:8pt;cursor:pointer;cursor:pointer; onMouseOver=this.bgColor=\'#D3D3D3\'; onMouseOut=this.bgColor=\'#FFFFCC\'; onclick=WCgoToApp(\'ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22929\');><td nowrap width=1% >17-41094&nbsp;●</td><td nowrap width=100% >Searles,&nbsp;Douglas&nbsp;</td></tr></table>')" width="10%" align="center"><img alt="" src="images/moreinfo.gif" width="12" height="12" border="0"></td>
+		
+		<td width="45%" nowrap="" bgcolor="#EEEEEE" align="center"><a style="cursor:pointer;text-decoration:none" onclick="next()"><b>Next</b></a></td>
+		</tr>
+		<tr>
+		<td colspan="3" width="100%" align="center">
+		<select onchange="same()" name="AccessBy" id="AccessByID">
+
+			<option selected="" value="CaseNumber">Case Number</option>
+			
+			<option value="LastName, FirstName">Last Name, First Name</option>
+			
+			<option value="LongName">Long Name</option>
+			
+			<option value="AddressLine1">1st Address Line</option>
+			
+			<option value="ZipCode">Zip Code</option>
+			
+			<option value="SSN">Social Security Number</option>
+			
+			<option value="ShowCauseDate">Show Cause Date</option>
+			
+			<option value="FirstMeetingDate">First Meeting Date</option>
+			
+			<option value="ConfirmationDate">Date Confirmed</option>
+			
+			<option value="ClosedDate">Closed Date</option>
+			
+			<option value="CloseCodeID">Case Status</option>
+			
+			<option value="ConfirmationHearingDate">Confirmation Hearing</option>
+			
+			<option value="tblCaseData.DateAdded">Date Added</option>
+
+		</select>
+		</td>
+		</tr></tbody></table></td>
+
+		<td>
+	    <table style="border-collapse:collapse" id="AutoNumber2" cellspacing="0" bordercolor="#009500" border="1" bgcolor="#D5FFD5">
+							<tbody><tr>
+								<td nowrap="">
+								    <select size="1" name="CaseOptions87" id="CaseOptions87" onchange="WCsetSession('MenuTab!-1');WCgoToApp(document.getElementById('CaseOptions87').options[document.getElementById('CaseOptions87').selectedIndex].value)">
+									<option value="#">Jump To</option>
+
+<option value="MaintainCase.aspx?file=tblCaseData&amp;hinit=0&amp;i=CaseID&amp;prog=inqCaseMain">Modify this Case</option>
+
+<option value="MaintainCase.aspx?file=tblCaseData&amp;hinit=0&amp;i=CaseID&amp;prog=inqCaseMain&amp;AccessKey=CaseMeans">Modify Means Data</option>
+
+<option value="MeansTestDisplay.aspx?&amp;b=1">Means Test</option>
+
+<option value="BldMatrix.aspx?cn=1741060">Build Creditor Matrix</option>
+
+    <option value="PayoutAuto.aspx">Calculate Payout</option>
+
+<option value="inqCaseDisbInputs.aspx">Disbursement Inquiry</option>
+
+<option value="MaintainFile.aspx?prog=inqCaseMain&amp;hinit=0&amp;fc=tblDebtorDefaults&amp;mode1=m&amp;defaults=DebtorDefaultID,CaseID&amp;values=22917&amp;orderby=0 1">Debtor Defaults</option>
+
+<option value="MaintainFile.aspx?prog=inqCaseMain&amp;hinit=0&amp;fc=tblPlanModifications&amp;mode1=m&amp;defaults=PlanModificationID,CaseID&amp;values=22917&amp;orderby=0 1">Plan Modifications</option>
+
+<option value="MaintainFile.aspx?prog=inqCaseMain&amp;hinit=0&amp;fc=tblDebtorDischarges&amp;mode1=m&amp;defaults=DebtorDischargeID,CaseID&amp;values=22917&amp;orderby=2 1">Debtor Discharges</option>
+
+<option value="inqCaseNOD.aspx">Case NOD Info</option>
+
+<option value="CaseHistoryStart.aspx?hinit=0&amp;cid=22917">Case Audit History</option>
+<option value="CaseActivityStart.aspx?hinit=0&amp;cid=22917">Case Activity</option>
+
+    <option value="DocumentMaintenance.aspx?fromprog=case&amp;cid=22917">Maintain Case Documents</option>
+
+<option value="MaintainCase.aspx?file=tblCaseData&amp;hinit=0&amp;i=CaseID&amp;prog=inqCaseMain&amp;field=~CaseNumber~">Change Case Number</option>
+
+<option value="MaintainFile.aspx?prog=inqCaseMain&amp;hinit=0&amp;fc=tblCaseHides&amp;mode1=m&amp;defaults=CaseHideID,CaseID&amp;values=22917&amp;orderby=0 1">Case Hide</option>
+
+<option value="TrusteeFeeAdjustment.aspx?Inq=yes">Trustee Fee Adjustment</option>
+
+<option value="MaintainCustomProfileBox.aspx">Customize Case Screen</option>
+
+<option value="CheckBalanceCase.aspx">Check Balance</option>
+
+<option value="CaseOptions.aspx?CaseOptions=TAC_Report_Breakdown_of_Unsecureds|nw=1|rep=1|CaseNumber=1741060|CaseID=22917">Breakdown of Unsecureds</option>
+
+<option value="inqPriorCaseInputs.aspx">Get PACER Filings </option>
+
+<option value="MaintainFile.aspx?prog=inqCaseMain&amp;hinit=0&amp;fc=tblTaxData&amp;mode1=m&amp;defaults=TaxDataID,CaseID&amp;values=22917&amp;orderby=0 1">Debtor Tax Info</option>
+
+									</select>&nbsp;
+								</td>
+							</tr>
+						</tbody></table>
+	    </td>
+
+</tr>
+</tbody></table>
+
+					</td>
+				</tr>
+			</tbody></table>
+		</td>
+		<td width="100%" nowrap="" align="right">
+		    &nbsp;
+<div id="boxBPublic" class="boxP" style="left:600px;top:200px;display:none;">
+    <div class="bar" onmousedown="dragStart(event, 'boxBPublic', '600`200`CC99FF`inqcaseparties`22917``')">Public Note&nbsp;&nbsp;<img src="images/close.gif" alt="Close Note" style="cursor:pointer" onclick="toggleStickyPublic('boxBPublic','600`200`CC99FF`inqcaseparties`22917``')" width="12" height="12"></div>
+    <div class="content">
+        <textarea class="txtareapublic" name="stickyP" id="stickyP" style="font-weight:bold; white-space: pre-wrap;" onkeydown="Stickymaxlength()" onblur="updatePublicSticky('600`200`CC99FF`inqcaseparties`22917``')"></textarea>
+    </div>
+</div>
+<img id="pubNote" style="cursor:pointer" alt="Show or Hide Public Note on Page" title="Show or Hide Public Note on Page" onclick="toggleStickyPublic('boxBPublic','600`200`CC99FF`inqcaseparties`22917``')" src="images/BulletinBoard/SpecialNotePublic.gif" width="20" height="20">
+
+            &nbsp;
+<div id="boxB" class="box" style="left:600px;top:200px;display:none;">
+    <div class="bar" onmousedown="dragStart(event, 'boxB', '600`200`ffff99`inqcaseparties`22917``')">Private Note&nbsp;&nbsp;<img src="images/close.gif" alt="Close Note" style="cursor:pointer" onclick="toggleSticky('boxB','600`200`ffff99`inqcaseparties`22917``')" width="12" height="12">&nbsp;</div>
+    <div class="content">
+        <textarea class="txtarea" name="sticky" id="sticky" style="font-weight:bold" onkeydown="Stickymaxlength()" onblur="updateSticky('600`200`ffff99`inqcaseparties`22917``')"></textarea>
+    </div>
+</div>
+<img id="privNote" style="cursor:pointer" alt="Show or Hide Private Note on Page" title="Show or Hide Private Note on Page" onclick="toggleSticky('boxB','600`200`ffff99`inqcaseparties`22917``')" src="images/BulletinBoard/SpecialNote.gif" width="20" height="20">
+
+			&nbsp;<img style="cursor:pointer" alt="Create PDF" title="Create PDF" onclick="PrintPDFPage(document.getElementById('dgrdCaseNames').clientWidth,&quot;inqCaseParties&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;,&quot;&quot;)" src="images/pdficon.gif" width="20" height="20">&nbsp;
+		</td>
+		
+		<td width="100%" nowrap="" align="right">
+			<table style="border-collapse:collapse" id="AutoNumber2" cellspacing="0" bordercolor="#009500" border="1" bgcolor="#D5FFD5">
+				<tbody><tr>
+					<td nowrap="">
+						&nbsp;Options:&nbsp; 
+						<select size="1" id="CaseOptions" name="CaseOptions">        	
+							<option value="CaseNames.aspx?prog=inqCaseParties">Modify Parties</option>
+							
+							<option value="MatrixDownload.aspx?prog=inqCaseParties">Download Matrix</option>
+    
+						</select>
+						<img src="images/go.gif" alt="" style="cursor:pointer" onclick="WCsetSession('MenuTab!-1');WCgoToApp(document.getElementById('CaseOptions').options[document.getElementById('CaseOptions').selectedIndex].value)">
+					</td>
+				</tr>
+			</tbody></table>
+		</td>				
+
+    </tr>
+</tbody></table>
+
+<!--  Worksheet Data -->
+
+<table style="border-collapse: collapse;" id="inqWorksheetTable" width="99%" cellspacing="0" cellpadding="13" bordercolor="#111111" border="0">
+    <tbody><tr>
+        
+        <td width="33%" valign="top">
+            <table style="border-collapse: collapse;" cellspacing="0" cellpadding="13" border="0">
+                <tbody><tr bgcolor="#ffffff"><td valign="top"><a onclick="WCsetApplication(clicked_+WCszUC+_+WCszWN+!1)" style="height:25px;background-color:#0A0;border:1px solid black;border-raidus:10px" href="ForumEdit.aspx?sb=&amp;o=&amp;a=m&amp;hid=7&amp;b=1852170&amp;tc=&amp;tn=&amp;pid=">Edit CCA Forum Note</a></td></tr><tr bgcolor="#ffffff"><td valign="top"><table style="border-collapse: collapse; width: auto" cellspacing="2" cellpadding="2"><tbody><tr><td style="font-size: 12px; font-weight: bold; color: #000000">•Tacoma Division</td></tr></tbody></table></td></tr><tr bgcolor="#ffffff"><td valign="top"><b>DOROTHY A BARTHOLOMEW ATTY</b><br><table width="auto" cellpadding="2" border="1">    <tbody><tr>         <td style="background-color:#006699; color:white;" align="center"><b>Name</b></td>              <td style="background-color:#006699; color:white;" align="center"><b>Email Address</b></td>         <td style="background-color:#006699; color:white;" align="center"><b>Comment</b></td>         <td style="background-color:#006699; color:white;" align="center"><b>E-Notice</b></td>         <td style="background-color:#006699; color:white;" align="center"><b>Correspondence</b></td>     </tr><tr><td align="left">Dorothy Bartholomew</td><td align="left"><a href="mailto:assistant@findbankruptcy.com?subject=17-41060-BDL"><img src="images\EmailIcon.png"> assistant@findbankruptcy.com</a></td><td align="left">ECF</td><td align="center">Y</td><td align="center"></td></tr><tr><td align="left">Dorothy Bartholomew</td><td align="left"><a href="mailto:dorothyb@findbankruptcy.com?subject=17-41060-BDL"><img src="images\EmailIcon.png"> dorothyb@findbankruptcy.com</a></td><td align="left"></td><td align="center"></td><td align="center">Y</td></tr><tr><td align="left">Jada Wood</td><td align="left"><a href="mailto:jadaw@findbankruptcy.com?subject=17-41060-BDL"><img src="images\EmailIcon.png"> jadaw@findbankruptcy.com</a></td><td align="left"></td><td align="center"></td><td align="center">Y</td></tr></tbody></table></td></tr><tr bgcolor="#ffffff"><td valign="top"><a href="https://ecf.wawb.uscourts.gov/cgi-bin/qryParties.pl?640892" target="_blank">ECF Parties</a></td></tr>
+            </tbody></table>
+        </td>
+        
+        <td width="33%" valign="top">
+            <table style="border-collapse: collapse;" cellspacing="0" cellpadding="13" border="0">
+                <tbody><tr bgcolor="#45B2EC"><td style="border:solid 1px #000" valign="top"><a onclick="WCsetApplication(clicked_+WCszUC+_+WCszWN+!1)" style="width:150px;height:25px" href="mailto:dorothyb@findbankruptcy.com?subject=17-41060-BDL%20Ellis" jr="">Email Attorney <img src="images\EmailIcon.png"></a></td></tr>
+            </tbody></table>
+        </td>
+        
+    </tr>
+
+</tbody></table>
+
+
+<style>
+#mydiv {
+    position: absolute;
+    z-index: 9;
+    background-color: #f1f1f1;
+    text-align: center;
+    border: 1px solid #d3d3d3;
+}
+
+#mydivheader {
+    padding: 10px;
+    cursor: move;
+    z-index: 10;
+    background-color: #2196F3;
+    color: #fff;
+}
+</style>
+
+<select name="ColumnDDL" id="ColumnDDL" class="tRowClrCred" onchange="lockColumns(document.getElementById('ColumnDDL').selectedIndex)" style="font-size:8pt;font-size:9;border-style:outset;">
+	<option value="1">Lock 1 Column</option>
+	<option value="2">Lock 2 Columns</option>
+	<option value="3">Lock 3 Columns</option>
+	<option value="4">Lock 4 Columns</option>
+	<option value="5">Lock 5 Columns</option>
+	<option value="6">Lock 6 Columns</option>
+	<option value="7">Lock 7 Columns</option>
+	<option value="8">Lock 8 Columns</option>
+	<option value="9">Lock 9 Columns</option>
+
+</select>
+</td></tr></tbody></table>
+
+<div id="div-datagrid1" onscroll="lockCol(document.getElementById('div-datagrid1').scrollLeft,document.getElementById('div-datagrid1').scrollTop,document.getElementById('ColumnDDL').selectedIndex+1)" style="border: thin solid rgb(160, 160, 160); overflow: auto; display: block; visibility: visible; width: 1920px; height: 421px;">
+<table rules="all" id="dgrdCaseNames" style="background-color:White;width:100%;border-collapse:collapse;" cellspacing="0" cellpadding="1" border="1">
+	<tbody><tr style="color: white; background-color: rgb(0, 102, 153); font-family: Verdana; font-size: x-small; font-weight: bold; visibility: hidden;" align="center">
+		<th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=Type&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=Type&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;white-space:nowrap;cursor:pointer;"><u>Type</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=LongName&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=LongName&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;white-space:nowrap;cursor:pointer;"><u>Name</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine1&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine1&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;white-space:nowrap;cursor:pointer;"><u>Address 1</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine2&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine2&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;white-space:nowrap;cursor:pointer;"><u>Address 2</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine3&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine3&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;white-space:nowrap;cursor:pointer;"><u>Address 3</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=City&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=City&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;white-space:nowrap;cursor:pointer;"><u>City</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=State&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=State&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;cursor:pointer;"><u>State</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ZipCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ZipCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;cursor:pointer;"><u>Zip</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ShortCutCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ShortCutCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;cursor:pointer;"><u>Short Cut</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ReferenceOnly&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ReferenceOnly&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color:#FFFFFF;cursor:pointer;"><u>RO</u></th>
+	</tr><tr title="265357" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265357','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#CDFFFF'" style="background-color: rgb(205, 255, 255); cursor: pointer;">
+		<td style="white-space:nowrap;" valign="top">DEBTOR1</td><td style="white-space:nowrap;" valign="top">Larry Jack Ellis Jr </td><td style="white-space:nowrap;" valign="top">14121 9th Ave Ct E</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">Tacoma</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98445-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265358" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265358','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#CDFFFF'" style="background-color: rgb(205, 255, 255); cursor: pointer;">
+		<td style="white-space:nowrap;" valign="top">DEBTOR2</td><td style="white-space:nowrap;" valign="top">Pamela Yvonne Ellis </td><td style="white-space:nowrap;" valign="top">14121 9th Ave Ct E</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">Tacoma</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98445-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="325" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=325','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFFFBF'" style="background-color: rgb(255, 255, 191); cursor: pointer;">
+		<td style="white-space:nowrap;" valign="top">ATTORNEY&nbsp;</td><td style="white-space:nowrap;" valign="top">DOROTHY A BARTHOLOMEW ATTY <font color="red"> (EFT)</font></td><td style="white-space:nowrap;" valign="top">STE C</td><td style="white-space:nowrap;" valign="top">5310 12TH ST E</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">FIFE</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98424-0000</td><td style="white-space:nowrap;" valign="top">000455    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="203946" onmouseover="this.style.backgroundColor='Silver'" onmouseout="this.style.backgroundColor='#BFFFDE'" style="background-color: rgb(191, 255, 222);">
+		<td style="white-space:nowrap;" valign="top">EMPLOYER&nbsp;<select name="S1" id="S1" class="tRowClr1" onchange="this.style.backgroundColor=this.options[this.selectedIndex].style.backgroundColor;ChooseStatus(1184596,this.options[this.selectedIndex].value)" style="background-color:#BFFFDE;">
+	<option value="1" style="background-color:#BFFFDE"></option>
+	<option value="2" style="background-color:#BFFFDE">DEBTOR1 *</option>
+	<option value="3" style="background-color:#BFFFDE">DEBTOR1</option>
+	<option selected="selected" value="4" style="background-color:#BFFFDE">DEBTOR2 *</option>
+	<option value="5" style="background-color:#BFFFDE">DEBTOR2</option>
+	<option value="6" style="background-color:#BFFFDE">BOTH *</option>
+	<option value="7" style="background-color:#BFFFDE">BOTH</option>
+
+</select>&nbsp;</td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top">STATE FARM MUTUAL AUTO INS CO </td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top">ATTN ECS DEDUCTIONS</td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top">3 STATE FARM PLAZA S P-4</td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top">&nbsp;</td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top">BLOOMINGTON</td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top">IL</td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top">61791-0002</td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top">EMP       </td><td onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=203946','Name_651',',scrollbars,resizable','Case')" style="white-space:nowrap;cursor:pointer;" valign="top"></td>
+	</tr><tr title="18292" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=18292','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#CCBFFF'" style="background-color: rgb(204, 191, 255); cursor: pointer;">
+		<td style="white-space:nowrap;" valign="top">FILING FEES</td><td style="white-space:nowrap;" valign="top">US BANKRUPTCY COURT CLERK </td><td style="white-space:nowrap;" valign="top">STE 2100</td><td style="white-space:nowrap;" valign="top">1717 PACIFIC AVE</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">TACOMA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98402-0000</td><td style="white-space:nowrap;" valign="top">200000    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265373" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265373','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color: rgb(255, 225, 225); cursor: pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">AMY ELLIS  </td><td style="white-space:nowrap;" valign="top">6635 MCKINLEY AVE</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top"> </td><td style="white-space:nowrap;" valign="top">TACOMA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98404-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="263749" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=263749','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color: rgb(255, 225, 225); cursor: pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">CAPITAL ONE  </td><td style="white-space:nowrap;" valign="top">ATTN GENERAL CORRESPONDENCE/BANKRUPTCY</td><td style="white-space:nowrap;" valign="top">PO BOX 30285</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">SALT LAKE CITY</td><td style="white-space:nowrap;" valign="top">UT</td><td style="white-space:nowrap;" valign="top">84130-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="190011" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=190011','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color: rgb(255, 225, 225); cursor: pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">CHEXSYSTEMS  </td><td style="white-space:nowrap;" valign="top">ATTN CONSUMER RELATIONS</td><td style="white-space:nowrap;" valign="top">7805 HUDSON RD STE 100</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">ST PAUL</td><td style="white-space:nowrap;" valign="top">MN</td><td style="white-space:nowrap;" valign="top">55125-1595</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="3658" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=3658','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color: rgb(255, 225, 225); cursor: pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">DEPARTMENT OF REVENUE </td><td style="white-space:nowrap;" valign="top">BANKRUPTCY UNIT</td><td style="white-space:nowrap;" valign="top">2101 4TH AVE STE 1400</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">SEATTLE</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98121-2300</td><td style="white-space:nowrap;" valign="top">025967    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="8672" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=8672','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">HOME DEPOT </td><td style="white-space:nowrap;" valign="top">PO BOX 20483</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">KANSAS CITY</td><td style="white-space:nowrap;" valign="top">MO</td><td style="white-space:nowrap;" valign="top">64195-0000</td><td style="white-space:nowrap;" valign="top">068863    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="100173" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=100173','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">HOME DEPOT  </td><td style="white-space:nowrap;" valign="top">PO BOX 182676</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">COLUMBUS</td><td style="white-space:nowrap;" valign="top">OH</td><td style="white-space:nowrap;" valign="top">43218-2676</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="240994" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=240994','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#808080'" style="background-color:#808080;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">HOME DEPOT CREDIT  </td><td style="white-space:nowrap;" valign="top">CITICARD PRIVATE LABEL</td><td style="white-space:nowrap;" valign="top">PO BOX 20483 ATTN BANKRUPTCY</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">KANSAS CITY</td><td style="white-space:nowrap;" valign="top">MO</td><td style="white-space:nowrap;" valign="top">64195-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top">Yes</td>
+	</tr><tr title="27623" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=27623','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">HOMESTREET BANK </td><td style="white-space:nowrap;" valign="top">TWO UNION SQUARE STE 2000</td><td style="white-space:nowrap;" valign="top">601 UNION ST</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">SEATTLE</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98101-2326</td><td style="white-space:nowrap;" valign="top">522687    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="239473" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=239473','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#808080'" style="background-color:#808080;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">HOMESTREET BANK CORP  </td><td style="white-space:nowrap;" valign="top">TWO UNION SQUARE</td><td style="white-space:nowrap;" valign="top">601 UNION ST.      SUITE 2000</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">SEATTLE</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98101-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top">Yes</td>
+	</tr><tr title="143499" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=143499','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">INNOVAS DATA SOLUTIONS  </td><td style="white-space:nowrap;" valign="top">PO BOX 1640</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">PITTSBURGH</td><td style="white-space:nowrap;" valign="top">PA</td><td style="white-space:nowrap;" valign="top">15230-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265374" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265374','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">INSURANCE UNLIMITED, INC.  </td><td style="white-space:nowrap;" valign="top">8239 STEILACOOM BLVD SW</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top"> </td><td style="white-space:nowrap;" valign="top">LAKEWOOD</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98498-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="232504" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=232504','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">INTERNAL REVENUE SERVICE  </td><td style="white-space:nowrap;" valign="top">PO BOX 7346</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top"> </td><td style="white-space:nowrap;" valign="top">PHILADELPHIA</td><td style="white-space:nowrap;" valign="top">PA</td><td style="white-space:nowrap;" valign="top">19101-7346</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265375" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265375','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">JIM MATCHETT  </td><td style="white-space:nowrap;" valign="top">318 E WRIGHT AVE #A</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top"> </td><td style="white-space:nowrap;" valign="top">TACOMA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98404-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="150902" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=150902','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">JP MORGAN CHASE BANK NA </td><td style="white-space:nowrap;" valign="top">PO BOX 901032</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">FT WORTH</td><td style="white-space:nowrap;" valign="top">TX</td><td style="white-space:nowrap;" valign="top">76101-2032</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265376" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265376','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">KABBAGE CARD  </td><td style="white-space:nowrap;" valign="top">STE 1688</td><td style="white-space:nowrap;" valign="top">925-B PEACHTREE ST NE</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">ATLANTA</td><td style="white-space:nowrap;" valign="top">GA</td><td style="white-space:nowrap;" valign="top">30309-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265380" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265380','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">LARRY JACK ELLIS JR </td><td style="white-space:nowrap;" valign="top">14121 9TH AVE CT E</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">TACOMA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98445-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265377" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265377','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">NANCY AND JAMES BENNETT  </td><td style="white-space:nowrap;" valign="top">611 E 141ST ST</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top"> </td><td style="white-space:nowrap;" valign="top">TACOMA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98445-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="264176" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=264176','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#808080'" style="background-color:#808080;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">PIERCE COUNTY ASSESSOR  </td><td style="white-space:nowrap;" valign="top">2401 S 35TH ST</td><td style="white-space:nowrap;" valign="top">ROOM 142</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">TACOMA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98409-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top">Yes</td>
+	</tr><tr title="48419" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=48419','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">PIERCE COUNTY ASSESSOR TREASURER </td><td style="white-space:nowrap;" valign="top">ROOM 142</td><td style="white-space:nowrap;" valign="top">2401 S 35TH</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">TACOMA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98409-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="442" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=442','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">PUGET SOUND COLLECTIONS </td><td style="white-space:nowrap;" valign="top">PO BOX 3011</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">TACOMA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98401-3011</td><td style="white-space:nowrap;" valign="top">010005    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265378" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265378','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">RAPID ADVANCE  </td><td style="white-space:nowrap;" valign="top">6TH FLOOR</td><td style="white-space:nowrap;" valign="top">4500 EAST WEST HWY</td><td style="white-space:nowrap;" valign="top"> </td><td style="white-space:nowrap;" valign="top">BETHESDA</td><td style="white-space:nowrap;" valign="top">MD</td><td style="white-space:nowrap;" valign="top">20814-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="4409" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=4409','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">SIDERIUS LONERGAN &amp; MARTIN </td><td style="white-space:nowrap;" valign="top">STE 847</td><td style="white-space:nowrap;" valign="top">500 UNION ST</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">SEATTLE</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98101-0000</td><td style="white-space:nowrap;" valign="top">030792    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="265379" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=265379','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#808080'" style="background-color:#808080;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">THE SHERWIN-WILLIAMS COMPANY  </td><td style="white-space:nowrap;" valign="top">% SIDERIUS LONGERGAN &amp; MARTI</td><td style="white-space:nowrap;" valign="top">500 UNION STREET, SUITE 847</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">SEATTLE</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98101-0000</td><td style="white-space:nowrap;" valign="top">          </td><td style="white-space:nowrap;" valign="top">Yes</td>
+	</tr><tr title="477" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=477','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">UNITED STATES TREASURY <font color="red"> (EFT)</font><font color="red"> (IRSEFT)</font></td><td style="white-space:nowrap;" valign="top">PO BOX 7317</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">PHILADELPHIA</td><td style="white-space:nowrap;" valign="top">PA</td><td style="white-space:nowrap;" valign="top">19101-7317</td><td style="white-space:nowrap;" valign="top">010076    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="26780" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=26780','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">WEINSTEIN &amp; RILEY PS </td><td style="white-space:nowrap;" valign="top">PO BOX 3978</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">SEATTLE</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98124-3978</td><td style="white-space:nowrap;" valign="top">470294    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr><tr title="616" onmouseover="this.style.backgroundColor='Silver'" onclick="WCopenWindow('Maintain.aspx?mode=v&amp;progskip=~&amp;xWin=&amp;file=tblName&amp;i=NameID&amp;pid=616','Name_651',',scrollbars,resizable','Case')" onmouseout="this.style.backgroundColor='#FFE1E1'" style="background-color:#FFE1E1;cursor:pointer;">
+		<td style="white-space:nowrap;" valign="top">CREDITOR</td><td style="white-space:nowrap;" valign="top">WSECU </td><td style="white-space:nowrap;" valign="top">PO BOX WSECU</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">&nbsp;</td><td style="white-space:nowrap;" valign="top">OLYMPIA</td><td style="white-space:nowrap;" valign="top">WA</td><td style="white-space:nowrap;" valign="top">98507-0099</td><td style="white-space:nowrap;" valign="top">010375    </td><td style="white-space:nowrap;" valign="top"></td>
+	</tr>
+</tbody></table>
+
+</div>
+<div id="PageDiv" style="overflow:hidden;position:relative"></div>
+<div id="HdrDiv" style="overflow: hidden; position: relative; opacity: 0.99; width: 1903px; top: -422px; left: 1px;"><table id="HdrTable" rules="all" style="background-color: white; width: 1902px; border-collapse: collapse;" cellspacing="0" cellpadding="1" border="0"><tbody><tr id="HdrRow" style="color:White;background-color:#006699;font-family:Arial;font-size:X-Small;" align="center">
+		<th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=Type&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=Type&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 247px; height: 16px;"><u>Type</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=LongName&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=LongName&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 371px; height: 16px;"><u>Name</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine1&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine1&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 433px; height: 16px;"><u>Address 1</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine2&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine2&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 302px; height: 16px;"><u>Address 2</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine3&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine3&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 100px; height: 16px;"><u>Address 3</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=City&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=City&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 142px; height: 16px;"><u>City</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=State&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=State&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); cursor: pointer; width: 53px; height: 16px;"><u>State</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ZipCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ZipCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); cursor: pointer; width: 104px; height: 16px;"><u>Zip</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ShortCutCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ShortCutCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); cursor: pointer; width: 92px; height: 16px;"><u>Short Cut</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ReferenceOnly&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ReferenceOnly&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); cursor: pointer; width: 30px; height: 16px;"><u>RO</u></th>
+	</tr></tbody></table></div>
+<div id="ColDiv" style="overflow: hidden; position: relative; width: 250px; height: 406px; top: -423px; left: 1px;"><table id="GL_tbl" rules="all" style="background-color: white; white-space: nowrap; width: 100%; border-collapse: collapse; height: 503px;" cellspacing="0" cellpadding="1" bordercolor="#666666" border="1"><tbody><tr id="GLcpr1" style="background-color: rgb(205, 255, 255); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="17">DEBTOR1</td></tr><tr id="GLcpr2" style="background-color: rgb(205, 255, 255); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">DEBTOR2</td></tr><tr id="GLcpr3" style="background-color: rgb(255, 255, 191); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">ATTORNEY&nbsp;</td></tr><tr id="GLcpr4" style="background-color: rgb(191, 255, 222);"><td style="white-space:nowrap;" width="246" valign="top" height="21">EMPLOYER&nbsp;<select name="S1" id="S1" class="tRowClr1" onchange="this.style.backgroundColor=this.options[this.selectedIndex].style.backgroundColor;ChooseStatus(1184596,this.options[this.selectedIndex].value)" style="background-color:#BFFFDE;">
+	<option value="1" style="background-color:#BFFFDE"></option>
+	<option value="2" style="background-color:#BFFFDE">DEBTOR1 *</option>
+	<option value="3" style="background-color:#BFFFDE">DEBTOR1</option>
+	<option selected="selected" value="4" style="background-color:#BFFFDE">DEBTOR2 *</option>
+	<option value="5" style="background-color:#BFFFDE">DEBTOR2</option>
+	<option value="6" style="background-color:#BFFFDE">BOTH *</option>
+	<option value="7" style="background-color:#BFFFDE">BOTH</option>
+
+</select>&nbsp;</td></tr><tr id="GLcpr5" style="background-color: rgb(204, 191, 255); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">FILING FEES</td></tr><tr id="GLcpr6" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr7" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr8" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr9" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr10" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr11" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr12" style="background-color: rgb(128, 128, 128); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr13" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr14" style="background-color: rgb(128, 128, 128); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr15" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr16" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr17" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr18" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr19" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr20" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr21" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr22" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr23" style="background-color: rgb(128, 128, 128); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr24" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr25" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr26" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr27" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr28" style="background-color: rgb(128, 128, 128); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr29" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr30" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr><tr id="GLcpr31" style="background-color: rgb(255, 225, 225); cursor: pointer;"><td style="white-space:nowrap;" width="246" valign="top" height="16">CREDITOR</td></tr></tbody></table></div>
+<div id="Hdr1Div" style="overflow: hidden; position: relative; opacity: 0.99; width: 250px; top: -844px; left: 1px;"><table id="HdrTable" rules="all" style="background-color: white; width: 1902px; border-collapse: collapse;" cellspacing="0" cellpadding="1" border="0"><tbody><tr id="HdrRow" style="color:White;background-color:#006699;font-family:Arial;font-size:X-Small;" align="center">
+		<th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=Type&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=Type&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 247px; height: 16px;"><u>Type</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=LongName&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=LongName&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 371px; height: 16px;"><u>Name</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine1&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine1&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 433px; height: 16px;"><u>Address 1</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine2&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine2&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 302px; height: 16px;"><u>Address 2</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=AddressLine3&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=AddressLine3&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 100px; height: 16px;"><u>Address 3</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=City&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=City&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); white-space: nowrap; cursor: pointer; width: 142px; height: 16px;"><u>City</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=State&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=State&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); cursor: pointer; width: 53px; height: 16px;"><u>State</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ZipCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ZipCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); cursor: pointer; width: 104px; height: 16px;"><u>Zip</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ShortCutCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ShortCutCode&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); cursor: pointer; width: 92px; height: 16px;"><u>Short Cut</u></th><th class="dataColHead" scope="col" onclick="WCdisableScreenOverflow();if (location.href.indexOf('?') > -1) {WCgoToApp(location.href+'&amp;q=ReferenceOnly&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)} else {WCgoToApp(location.href+'?&amp;q=ReferenceOnly&amp;spl='+document.getElementById('div-datagrid1').scrollLeft+'&amp;spt='+document.getElementById('div-datagrid1').scrollTop)}" style="color: rgb(255, 255, 255); cursor: pointer; width: 30px; height: 16px;"><u>RO</u></th>
+	</tr></tbody></table></div>
+<div id="RestDiv" style="margin-bottom: -10000px; position: relative; float: left; top: -423px;"></div>
+<script language="JavaScript" type="text/javascript" src="wz_tooltip.js"></script><div onclick="tt_ShowDiv(false)" id="tOoLtIp34128" style="position:absolute;z-index:1010;left:0px;top:0px;width:500px;visibility:hidden;"><table width="500" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:verdana,geneva,sans-serif;font-size:11px;" face="verdana,geneva,sans-serif" color="#ffffff"><b>Additional Cases (Accessing by Case Number)</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:verdana,geneva,sans-serif;font-size:11px;font-weight:normal;" face="verdana,geneva,sans-serif" color="#000066"><table width="100%" height="10" cellspacing="0" cellpadding="0" border="0"><tbody><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22904');"><td width="1%" nowrap="">17-40978&nbsp;●</td><td width="100%" nowrap="">Rabago,&nbsp;Rosaline&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22905');"><td width="1%" nowrap="">17-40991&nbsp;●</td><td width="100%" nowrap="">Moffitt Jr,&nbsp;Donald&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22906');"><td width="1%" nowrap="">17-40996&nbsp;●</td><td width="100%" nowrap="">Music,&nbsp;Brianna&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22907');"><td width="1%" nowrap="">17-41004&nbsp;●</td><td width="100%" nowrap="">Emery Sr,&nbsp;Gerald&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22908');"><td width="1%" nowrap="">17-41010&nbsp;●</td><td width="100%" nowrap="">Luce,&nbsp;Philip&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22909');"><td width="1%" nowrap="">17-41023&nbsp;●</td><td width="100%" nowrap="">Stinson,&nbsp;Ronald&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22910');"><td width="1%" nowrap="">17-41027&nbsp;●</td><td width="100%" nowrap="">Day,&nbsp;Joshua&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22911');"><td width="1%" nowrap="">17-41033&nbsp;●</td><td width="100%" nowrap="">Keefer,&nbsp;William&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22912');"><td width="1%" nowrap="">17-41034&nbsp;●</td><td width="100%" nowrap="">Fijalka,&nbsp;David&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22913');"><td width="1%" nowrap="">17-41040&nbsp;●</td><td width="100%" nowrap="">Gabriel,&nbsp;Imelda&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22914');"><td width="1%" nowrap="">17-41042&nbsp;●</td><td width="100%" nowrap="">Garrison,&nbsp;Molly&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22915');"><td width="1%" nowrap="">17-41050&nbsp;●</td><td width="100%" nowrap="">Ferreira,&nbsp;Michelle&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22916');"><td width="1%" nowrap="">17-41051&nbsp;●</td><td width="100%" nowrap="">Crawford,&nbsp;Ryan&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#CCCCFF';" ;="" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22917');" bgcolor="#CCCCFF"><td width="1%" nowrap="">17-41060&nbsp;<font face="Unicode">⇨</font></td><td width="100%" nowrap="">Ellis Jr,&nbsp;Larry&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22918');"><td width="1%" nowrap="">17-41062&nbsp;●</td><td width="100%" nowrap="">Heinig,&nbsp;Steven&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22919');"><td width="1%" nowrap="">17-41070&nbsp;●</td><td width="100%" nowrap="">Davis,&nbsp;Suk&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22920');"><td width="1%" nowrap="">17-41072&nbsp;●</td><td width="100%" nowrap="">Sutliff,&nbsp;Timothy&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22921');"><td width="1%" nowrap="">17-41079&nbsp;●</td><td width="100%" nowrap="">Mitchell,&nbsp;Randal&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22922');"><td width="1%" nowrap="">17-41081&nbsp;●</td><td width="100%" nowrap="">Meisner,&nbsp;Gregg&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22923');"><td width="1%" nowrap="">17-41083&nbsp;●</td><td width="100%" nowrap="">Norris,&nbsp;Dianne&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22931');"><td width="1%" nowrap="">17-41086&nbsp;●</td><td width="100%" nowrap="">Gofman,&nbsp;Yelena&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22924');"><td width="1%" nowrap="">17-41087&nbsp;●</td><td width="100%" nowrap="">Tobin,&nbsp;Earl&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22925');"><td width="1%" nowrap="">17-41088&nbsp;●</td><td width="100%" nowrap="">Smith,&nbsp;Ryan&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22926');"><td width="1%" nowrap="">17-41089&nbsp;●</td><td width="100%" nowrap="">Boyd,&nbsp;Christopher&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22927');"><td width="1%" nowrap="">17-41090&nbsp;●</td><td width="100%" nowrap="">Riggan,&nbsp;Jimmie&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22928');"><td width="1%" nowrap="">17-41091&nbsp;●</td><td width="100%" nowrap="">Swanson,&nbsp;Derek&nbsp;</td></tr><tr style="font-size:8pt;cursor:pointer;cursor:pointer;" onmouseover="this.bgColor='#D3D3D3';" onmouseout="this.bgColor='#FFFFCC';" onclick="WCgoToApp('ChangeCase.aspx?AccessBy=~&amp;progskip=~&amp;cid=22929');"><td width="1%" nowrap="">17-41094&nbsp;●</td><td width="100%" nowrap="">Searles,&nbsp;Douglas&nbsp;</td></tr></tbody></table></font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp1911" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Tickle Item</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">Click here to add a reminder item to this case that will display on your Inbox at the time specified.  The item can display a brief note of what the reminder is regarding</font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp017" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Attorney Address</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">STE C<br>5310 12TH ST E<br>FIFE, WA 984240000<br>253-922-2016<br>dorothyb@findbankruptcy.com<br>Judge: Brian D. Lynch</font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp016" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>At-A-Glance Worksheet</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#f0ffff"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066"><div id="contentDivImg_176" style="display: block; padding: 0 10 0 10;width: fit-content;"> <div style="padding: 0; margin: 0; float:left;"> <p style="margin: 0; float:left; padding: 0 20 0 0;"><table class="table table-condensed table-striped table-bordered" style="background-color:#FFFFFF; width:auto;border:1px solid black">    <tbody>        <tr>            <td>Equity: </td>            <td><strong><span style="color:#000000;font-size:12px;">$8,105.65</span></strong></td>        </tr>        <tr>            <td>IV.E.: </td>            <td><strong><span style="color:#000000;font-size:12px;">$0.00</span></strong></td>        </tr>          <tr>            <td>TPI: </td>            <td><span style="color:#000000;font-size:12px;"><strong><span id="LabelCustomFont" style="color:#000000;font-size:12;">$66,302.82</span></strong></span></td>        </tr>        <tr>            <td>TPILR: </td>            <td><span style="color:#000000;font-size:12px;"><strong>$66,231.18</strong></span></td>        </tr>            <tr><td>Base: </td>            <td><span style="color:#000000;font-size:12px;"><strong><span id="LabelCustomFont" style="color:#000000;font-size:12;">$0.00</span></strong></span></td>        </tr>        <tr>            <td>Base Balance: </td>            <td><strong><span style="color:#000000;font-size:12px;">$0.00</span></strong></td>        </tr>             <tr>            <td>Delinquency to be Cured (By Order): </td>            <td><strong><span style="color:#000000;font-size:12px;">$0.00</span></strong></td>        </tr>            </tbody></table></p></div> </div></font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp015" style="position:absolute;z-index:1010;left:0px;top:0px;width:300px;visibility:hidden;"><table width="300" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:12px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Debtor 2 Paying</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:12px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066"><table style="border-color:#666666" width="100%" cellspacing="0" cellpadding="0" border="1"><tbody><tr><td nowrap=""><b>Pamela Yvonne Ellis</b><br>14121 9th Ave Ct E<br><br><br>Tacoma&nbsp;WA&nbsp;98445-0000<br>(253) 973-0980</td></tr></tbody></table></font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp014" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Debtor 2 Address</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">14121 9th Ave Ct E<br>Tacoma, WA 98445-0000<br>253-973-0980<br>Email: pyellis6@yahoo.com</font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp013" style="position:absolute;z-index:1010;left:0px;top:0px;width:300px;visibility:hidden;"><table width="300" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:12px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>BAPCPA Dates</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:12px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066"><table cellspacing="0" cellpadding="0"><tbody><tr><td nowrap="" align="right">Petition filed:</td><td nowrap="" align="left">&nbsp;<b>Wednesday, March 22, 2017</b></td><td nowrap="" align="right">&nbsp;<b>90</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Thursday, December 22, 2016</b></td></tr><tr><td nowrap="" align="right">&nbsp;<b>730</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Monday, March 23, 2015</b></td><td nowrap="" align="right">&nbsp;&nbsp;&nbsp;<b>910</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Wednesday, September 24, 2014</b></td></tr><tr><td nowrap="" align="right">&nbsp;<b>1215</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Saturday, November 23, 2013</b></td><td nowrap="" align="right">&nbsp;<b>46</b> Days after filing:</td><td nowrap="" align="left">&nbsp;<b>Sunday, May 7, 2017</b></td></tr><tr><td nowrap="" align="right">&nbsp;<b>180</b> Days before filing:</td><td nowrap="" align="left">&nbsp;<b>Friday, September 23, 2016</b></td><td nowrap="" align="right">&nbsp;<b>120</b> Days after 341:</td><td nowrap="" align="left">&nbsp;<b>Friday, August 18, 2017</b></td></tr><tr><td nowrap="" align="right">&nbsp;<b>120</b> Days after filed:</td><td nowrap="" align="left">&nbsp;<b>Thursday, July 20, 2017</b></td><td></td><td></td></tr></tbody></table></font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp012" style="position:absolute;z-index:1010;left:0px;top:0px;width:350px;visibility:hidden;"><table width="350" cellspacing="0" cellpadding="0" border="0" bgcolor="#003399"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Debtor 1 Address</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">14121 9th Ave Ct E<br>Tacoma, WA 98445-0000<br>253-973-0699<br>Email: charwila6@hotmail.com<br>DBA: fdba: Northwest Craftsman Resources LLC</font></td></tr></tbody></table></td></tr></tbody></table></div><div onclick="tt_ShowDiv(false)" id="tOoLtIp00" style="position:absolute;z-index:1010;left:0px;top:0px;width:180px;visibility:hidden;"><table width="180" cellspacing="0" cellpadding="0" border="0" bgcolor="#267BBD"><tbody><tr><td style="padding-left:3px;"><font style="color:#ffffff;font-family:arial,helvetica,sans-serif;font-size:11px;" face="arial,helvetica,sans-serif" color="#ffffff"><b>Version Info</b></font></td></tr><tr><td><table width="100%" cellspacing="1" cellpadding="3" border="0"><tbody><tr><td style="padding:3px;" bgcolor="#ffffcc"><font style="color:#000066;font-family:arial,helvetica,sans-serif;font-size:11px;font-weight:normal;" face="arial,helvetica,sans-serif" color="#000066">Rev 9.0.300 released 2/2/2021<br>RPT: 900_2020-05-12<br>UDF: 900_2020-05-28</font></td></tr></tbody></table></td></tr></tbody></table></div>
+</form>
+
+
+</body>
+
+
+
+onclick="WCopenWindow(mailto:test);"
+
+
+
+//////////////////////////////////
+// Email
+//////////////////////////////////
+|~Select '<a onclick=WCsetApplication(clicked_+WCszUC+_+WCszWN+!1) style="width:150px;height:25px" href=mailto:' + AttyEMailAddress + '?subject=' + CONCAT(displaycasenumber, '%20', Deb1LastName) + '")>Email Attorney <img src=images\EmailIcon.png></a>'
+ as FieldData
+ from vwCRMainCase
+ where CaseID = {CaseID}~|
+
+
+

@@ -1,0 +1,51 @@
+|~SELECT CASE WHEN EXISTS( SELECT TOP 1 
+                           tblEmailAddress.EmailAddress 
+                           FROM tblEmailAddress INNER JOIN 
+                           vwCRMainAttorney ON tblEmailAddress.NameID = vwCRMainAttorney.NameID 
+                           AND vwCRMainAttorney.CaseID = {CaseID}) THEN 
+'<b>' + vwCRMainAttorney.AttyLongName + '</b><br/>' + 
+'<table width=auto border=1 cellpadding=2>
+    <tr> 
+        <td align=center style="background-color:#006699; color:white;"><b>Name</b></td>      
+        <td align=center style="background-color:#006699; color:white;"><b>Email Address</b></td> 
+        <td align=center style="background-color:#006699; color:white;"><b>Comment</b></td> 
+        <td align=center style="background-color:#006699; color:white;"><b>E-Notice</b></td> 
+        <td align=center style="background-color:#006699; color:white;"><b>Correspondence</b></td> 
+    </tr>' END AS FieldData , 'AAAAA' AS SortOrder 
+FROM vwCRMainAttorney 
+WHERE vwCRMainAttorney.CaseID = {CaseID} 
+UNION ALL 
+SELECT CASE WHEN EXISTS( SELECT TOP 1 
+                           tblEmailAddress.EmailAddress 
+                           FROM tblEmailAddress INNER JOIN 
+                           vwCRMainAttorney ON tblEmailAddress.NameID = vwCRMainAttorney.NameID 
+                           AND vwCRMainAttorney.CaseID = {CaseID}) THEN 
+    '<tr>' + 
+        '<td align=left>' + tblEmailAddress.Name + '</td>' + 
+        '<td align=left>' + tblEmailAddress.EmailAddress + '</td>' +
+        '<td align=left>' + CONVERT(VARCHAR(MAX), tblEmailAddress.Comment) + '</td>' + 
+        '<td align=center>' + ISNULL(tblCh13Flags.Flag, '') + '</td>' + 
+        '<td align=center>' + ISNULL(dbo.udfGetCh13Flag(tblEmailAddress.EmailID,1036,''),'') + '</td>' + 
+    '</tr>' 
+END AS FieldData, Name AS SortOrder 
+FROM tblEmailAddress INNER JOIN 
+tblName ON tblEmailAddress.NameID = tblName.NameID INNER JOIN 
+tblCaseName ON tblName.NameID = tblCaseName.NameID  INNER JOIN 
+tblCaseData ON tblCaseName.CaseID = tblCaseData.CaseID INNER JOIN 
+tblTrustee ON tblCaseData.TrusteeID = tblTrustee.TrusteeID LEFT JOIN 
+tblCh13Flags ON tblEmailAddress.EmailID = tblCh13Flags.LinkTableKey AND tblCh13Flags.LinkTableCodeID = 1203 AND tblCh13Flags.FlagCodesID = 1022 
+WHERE tblCaseName.CaseID = {CaseID} 
+AND tblCaseData.CaseNumber = '{CaseNumber}' 
+AND tblCaseName.NameTypeID = 1 
+AND dbo.udfAttyCaseNameID(tblCaseData.CaseID) = tblCaseName.CaseNameID 
+AND tblTrustee.ProSeNameID <> tblName.NameID  
+GROUP BY tblEmailAddress.Name, tblEmailAddress.EmailAddress, tblEmailAddress.EmailID, tblCaseData.DisplayCaseNumber, CONVERT(VARCHAR(MAX), tblEmailAddress.Comment), tblCh13Flags.Flag 
+
+UNION ALL 
+SELECT  CASE WHEN EXISTS( SELECT TOP 1 
+                           tblEmailAddress.EmailAddress 
+                           FROM tblEmailAddress INNER JOIN 
+                           vwCRMainAttorney ON tblEmailAddress.NameID = vwCRMainAttorney.NameID 
+                           AND vwCRMainAttorney.CaseID = {CaseID}) THEN 
+'</table>' END AS FieldData, 'ZZZZZ' AS SortOrder 
+ORDER BY SortOrder~|

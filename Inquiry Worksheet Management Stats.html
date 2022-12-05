@@ -1,0 +1,303 @@
+<!-- 
+    Table Layout 
+    ______________________________________________________________
+    |Cases Filed MTD|Cases Filed YTD|Cases Close EOM|Confirm MTD  |        // first-row-header                                      
+    |               |               |               |             |        // first-row-details
+    |# Cases BOH 25K|Number Unpro Doc|Docs Down Tdy |Final Rep MTD|        // second-row-header  
+    |               |               |               |             |        // second-row-details 
+    |Workflow Items |Tickles Act Tdy|TNG Emls Tdy   |Last DB Backu|        // third-row-header
+    |               |               |               |             |        // third-row-details
+    |Active Cases   | Unconf Cases  | Confirmed Case|Delinq Cases |        // fourth-row-header
+       // fourth-row-details
+    |Tacoma         | Vancouver     | Lynch         | Heston      |        // fifth-row-header
+    |               |               |               |             |          // fifth-row-details
+    |                   Miss Tax Returns            |Tax Rtrns Today|        // sixth-row-header
+    _______________________________________________________________        // sixth-row-details
+ -->
+<!-- Setup the table 
+The table is comprised of 4 header rows and 4 body rows. Each row has a corresponding ID such as 'first-row-header'. Each subsequent row has an ID of 'first-row-details'. 
+-->
+<!-- Updated 11/03/2022 to account for close code type N 'Completed No Discharge' in the 'Cases Close EOM' -->
+<!-- Updated 11/9/2022 to add 6th row for missing tax returns -->
+ <table width="100%" border="1" cellpadding="1" cellspacing="0" style="background-color: rgb(0, 102, 153);">
+    <thead>
+        <tr>
+            <td colspan="4" style="text-align: center;font-weight: bold;font-size: large;">Management Statistics</td>
+        </tr>
+    </thead>
+    <tr id="first-row-header">
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Cases Filed MTD
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Cases Filed YTD 
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Cases Set to Close EOM
+            </strong>
+        </td>
+        
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Confirmations MTD
+            </strong>
+        </td>
+
+    </tr>
+    <tr id="first-row-details">
+        <td id="cases-filed-MTD" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT COUNT(tblCaseData.CaseID) as FieldData FROM tblCaseData WHERE (CASE WHEN tblCaseData.ConversionDate <> '1/1/1900' THEN tblCaseData.ConversionDate ELSE tblCaseData.PetitionFiledDate END) >= DATEADD(month, DATEDIFF(month, 0, getdate()),0) AND tblCaseData.PetitionFiledDate <= Cast(getdate() as Date)~|
+        </td>
+        <td id="cases-filed-ytd" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~Select Count(tblCaseData.CaseID) as FieldData FROM tblCaseData WHERE tblCaseData.PetitionFiledDate >= dateadd(yy,datediff(yy,0,getdate()),0) AND tblCaseData.PetitionFiledDate <= Cast(getdate() as Date)~|
+        </td>
+        <td id="cases-set-to-close-EOM" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~Select Count(CD.CaseID) as FieldData from tblCaseData as CD
+                    join vwCRMainCase as MC on CD.CaseID = MC.CaseID
+                     WHERE MC.CaseDisposition = 'C' 
+                         and CD.MonthsRemainingInPlan <= 4
+                         and (MC.CloseCode = 'J' OR MC.CloseCode = 'F' OR MC.CloseCode = 'X' OR MC.CloseCode = 'N')
+                         and MC.ClosedDate >= Cast(GetDate() as Date)
+                         and CD.ConfirmationDate <> '1/1/1900'
+                         and dbo.udfGetWorksheetData('-8888888', 208, 'CheckBox', CONCAT(CONVERT(VARCHAR, CD.CaseID), '03'), 0) = 'true'~|
+        </td>
+        <td id="Confirmations-this-month" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT REPLACE(CONVERT(VARCHAR, CAST(COUNT(CaseID) AS MONEY), 1), '.00', '')
+            AS FieldData 
+                       FROM vwCRCasesWithPurged_AdminWorksheet 
+                       INNER JOIN tblDebtorTypes ON vwCRCasesWithPurged_AdminWorksheet.DebtorTypeID = tblDebtorTypes.DebtorTypeID  
+                       WHERE vwCRCasesWithPurged_AdminWorksheet.ConfirmationDate >= DATEADD(month, DATEDIFF(month, 0, GETDATE()),0)
+                       AND vwCRCasesWithPurged_AdminWorksheet.ConfirmationDate > '1/2/1900' 
+                       AND tblDebtorTypes.DebtorTypeCode <> 'A'~|
+        </td>
+
+    </tr>
+
+    <tr id="second-row-header">
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                # Cases with BOH Over $20k 
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Number of Unprocessed Docs
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Docs Downloaded Today
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Final Reports MTD
+            </strong>
+        </td>
+    </tr>
+    <tr id="second row details">
+        <td id="BOH-Over_20k" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT COUNT(CaseID) as FieldData 
+            FROM tblCaseData 
+            INNER JOIN tblCloseCode ON tblCaseData.CloseCodeID = tblCloseCode.CloseCodeID 
+            WHERE tblCaseData.BalanceOnHand > 20000~|
+        </td>
+       
+        <td id="number-of-unprocessed-docs" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~Select Count(DocumentID) as FieldData FROM tblDocumentDetail WHERE Processed = 0~|
+        </td>
+        <td id="docs-downloaded-today" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~Select count(DocumentID) as FieldData  from tbldocumentdetail where processed = 0 and CreatedDate >= Cast(getdate() as DATE)~|
+        </td>
+        <td id="final-reports-This-Month" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT REPLACE(CONVERT(VARCHAR, CAST(COUNT(CaseID) AS MONEY), 1), '.00', '')
+            AS FieldData 
+                        FROM vwCRCasesWithPurged_AdminWorksheet
+                        INNER JOIN tblDebtorTypes ON vwCRCasesWithPurged_AdminWorksheet.DebtorTypeID = tblDebtorTypes.DebtorTypeID  
+                        WHERE vwCRCasesWithPurged_AdminWorksheet.FinalReportDate >= DATEADD(month, DATEDIFF(month, 0, GETDATE()), 0)
+                        AND vwCRCasesWithPurged_AdminWorksheet.FinalReportDate > '1/2/1900' 
+                        AND tblDebtorTypes.DebtorTypeCode <> 'A'~|
+        </td>
+
+    </tr>
+    <tr id="third-row-header">
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Workflow Items Assigned Today
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Tickles Activated Today
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                TNG Emails Sent Today
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Last Database Backup
+            </strong>
+        </td>
+    </tr>
+
+    <tr id="third-row-details">
+        <td id="count-worfklows-today" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~Select Count(WorkflowHistoryID) as FieldData from tblWorkflowHistory where RecordDate >= Cast(getdate() as DATE)~|
+        </td>
+        <td id="count-tickles-today" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~Select Count(InboxID) as FieldData from tblinbox where InboxDate >= Cast(GetDate() as Date) and Acknowledged = 0 and InboxItemType <> 0~|
+        </td>
+        <td id="count-emails-sent-today" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT Count(EmailHistoryID) as FieldData FROM tblEmailSentHistory WHERE EmailSentDate >= Cast(GetDate() as Date)~|
+        </td>       
+        <td id="last-db-backup" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT ISNULL( 
+                ( 
+                SELECT TOP 1 
+                ( 
+                Select CASE
+                WHEN msdb.dbo.backupset.backup_finish_date < Cast(GetDate() as Date)
+                THEN '<span style="color: red;">' + CONVERT( VARCHAR(12), msdb.dbo.backupset.backup_finish_date, 101) + '</span>'
+                ELSE  CONVERT( VARCHAR(12), msdb.dbo.backupset.backup_finish_date, 101)
+                END
+                ) AS FieldData 
+                FROM msdb.dbo.backupmediafamily 
+                INNER JOIN msdb.dbo.backupset ON msdb.dbo.backupmediafamily.media_set_id = msdb.dbo.backupset.media_set_id 
+                WHERE msdb.dbo.backupset.database_name = 
+                ( 
+                SELECT TOP 1 SQLDatabase 
+                FROM tblTrusteeDefaults 
+                ) 
+                ORDER BY msdb.dbo.backupset.backup_finish_date DESC 
+                ), 'This database has never been backed up: '+ 
+                ( 
+                SELECT TOP 1 REPLACE(REPLACE(SQLDatabase, ']', ''), '[', '') 
+                FROM tblTrusteeDefaults 
+                )) AS FieldData~|
+        </td>
+
+    </tr>
+    <!-- New 4th row header -->
+    <tr id="fourth-row-header">
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Active Cases
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Unconfirmed Cases
+            </strong>
+        </td>
+        <td align=center style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Confirmed Cases
+            </strong>
+        </td>
+        
+        <td align=center title="Cases 3x Monthly Payment and No Payment Received in Last 30 days" style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <img border="0" style="cursor:pointer" src="images/moreinfo.gif" width="15" height="15" title="Cases 3x Monthly Payment and No Payment Received in Last 30 days"/>
+            <strong>
+               Delinquent Cases
+            </strong>
+        </td>
+
+    </tr>
+    <tr id="fourth-row-details">
+        <td id="active-cases" title="All Active Cases" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+        |~SELECT COUNT(vwCRMainCaseNoAtty.CaseID) as FieldData FROM vwCRMainCaseNoAtty WHERE CaseDisposition = 'A'~|
+        </td>
+        <td id="unconfirmed-cases" title="Unconfirmed Cases in Active Status" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+        |~SELECT COUNT(vwCRMainCaseNoAtty.CaseID) as FieldData FROM vwCRMainCaseNoAtty WHERE ConfirmationDate = '1/1/1900' and CloseCodeID = 2~|
+        </td>
+        <td id="confirmed-cases" title="All Confirmed Cases in Active Status" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+        |~SELECT COUNT(vwCRMainCaseNoAtty.CaseID) as FieldData FROM vwCRMainCaseNoAtty WHERE ConfirmationDate <> '1/1/1900' and CloseCodeID = 2~|
+        </td>
+        <td id="delinquent-cases" title="Cases 3x Monthly Payment and No Payment Received in Last 30 days" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            <!-- Custom View Added to TNG for this query -->
+            |~SELECT COUNT(vwCRDelinquencyCurrentActiveCases.CaseID) as FieldData from vwCRDelinquencyCurrentActiveCases~|
+
+        </td>
+
+    </tr>
+
+    <!-- New 5th row header -->
+    <tr id="fifth-row-header">
+        <td align=center title="Active Tacoma Cases Confirmed and Unconfirmed" style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Active Tacoma Cases
+            </strong>
+        </td>
+        <td align=center title="Active Vancouver Cases Confirmed and Unconfirmed" style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Active Vancouver Cases 
+            </strong>
+        </td>
+        <td align=center title="All Active Lynch Cases" style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Active Lynch Cases
+            </strong>
+        </td>
+        
+        <td align=center title="All Active Heston Cases" style="background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+            <strong>
+                Active Heston Cases
+            </strong>
+        </td>
+
+    </tr>
+    <tr id="fifth-row-details">
+        <td id="tacoma-cases" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT COUNT(vwCRMainCaseNoAtty.CaseID) as FieldData FROM vwCRMainCaseNoAtty WHERE DivisionCodeID <> 2 and CloseCodeID = 2~|
+        </td>
+        <td id="vancouver-cases" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT COUNT(vwCRMainCaseNoAtty.CaseID) as FieldData FROM vwCRMainCaseNoAtty WHERE DivisionCodeID = 2 and CloseCodeID = 2~|
+        </td>
+        <td id="lynch-cases" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT COUNT(vwCRMainCaseNoAtty.CaseID) as FieldData FROM vwCRMainCaseNoAtty WHERE JudgeID = 6 and CloseCodeID = 2~|
+        </td>
+        <td id="heston-cases" align=center style="background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~SELECT COUNT(vwCRMainCaseNoAtty.CaseID) as FieldData FROM vwCRMainCaseNoAtty WHERE JudgeID = 9 and CloseCodeID = 2~|
+        </td>
+
+    </tr>
+
+        <!-- New 6th row header -->
+        <tr id="sixth-row-header">
+            <td colspan="3" align=center title="Active Tacoma Cases Confirmed and Unconfirmed" style="text-align: center; background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+                <strong title="Total number of active cases missing tax returns for each specified year">
+                    Active Cases with Missing Tax Returns by Year
+                </strong>
+            </td>
+            <td align=center style="text-align: center; background-color: rgba(255,255,255,0.3); backdrop-filter: blur( 7.5px );color:black;" width="25%">
+                <strong title="Total number of active cases missing tax returns for each specified year">
+                    Tax Returns Received Today
+                </strong>
+            </td>
+    
+        </tr>
+
+    <tr id="sixth-row-details">
+        <td colspan="3" id="tacoma-cases" align=center style="text-align: center; background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+           <b style="padding-left: 10px;">2017</b>: |~Select count(tblTaxData.caseID) as FieldData from tblTaxData join tblCaseData on tblTaxData.CaseID = tblCaseData.CaseID where TaxYear = '2017' and CloseCodeID = 2 and DateReceived = '1/1/1900' and AGI = 0~|
+            <b style="padding-left: 10px;">2018</b>: |~Select count(tblTaxData.caseID) as FieldData from tblTaxData join tblCaseData on tblTaxData.CaseID = tblCaseData.CaseID where TaxYear = '2018' and CloseCodeID = 2 and DateReceived = '1/1/1900' and AGI = 0~|
+            <b style="padding-left: 10px;">2019</b>: |~Select count(tblTaxData.caseID) as FieldData from tblTaxData join tblCaseData on tblTaxData.CaseID = tblCaseData.CaseID where TaxYear = '2019' and CloseCodeID = 2 and DateReceived = '1/1/1900' and AGI = 0~|
+            <b style="padding-left: 10px;">2020</b>: |~Select count(tblTaxData.caseID) as FieldData from tblTaxData join tblCaseData on tblTaxData.CaseID = tblCaseData.CaseID where TaxYear = '2020' and CloseCodeID = 2 and DateReceived = '1/1/1900' and AGI = 0~|
+            <b style="padding-left: 10px;">2021</b>: |~Select count(tblTaxData.caseID) as FieldData from tblTaxData join tblCaseData on tblTaxData.CaseID = tblCaseData.CaseID where TaxYear = '2021' and CloseCodeID = 2 and DateReceived = '1/1/1900' and AGI = 0~|
+            <b style="padding-left: 10px;">2022</b>: |~Select count(tblTaxData.caseID) as FieldData from tblTaxData join tblCaseData on tblTaxData.CaseID = tblCaseData.CaseID where TaxYear = '2022' and CloseCodeID = 2 and DateReceived = '1/1/1900' and AGI = 0~|
+        </td>
+        <td colspan="3" id="tacoma-cases" align=center style="text-align: center; background-color:rgb(222, 239, 239, 0.6); backdrop-filter: blur( 7.5px );">
+            |~Select count(tblTaxData.caseID) as FieldData from tblTaxData join tblCaseData on tblTaxData.CaseID = tblCaseData.CaseID where CloseCodeID = 2 and DateReceived = Cast(GetDate() as date) ~|
+        </td>
+
+    </tr>
+
+</table>

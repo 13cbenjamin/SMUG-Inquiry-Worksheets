@@ -1,0 +1,37 @@
+<div id="caseFlagsDisplay" style="width: 33vw; border: 2px solid #90afc9; border-radius: 1em; padding: 4px; ">
+    <div style="text-align: center;"><span style="font-size: medium; color: #262727; font-weight: bold; text-decoration: underline;">Case Flags:</span></div>
+    <div style="margin-top: 10px;display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); column-gap: 10px; row-gap: 10px; color: black; font-size: small; font-weight: bold;">
+|~
+SELECT 
+        CASE WHEN (tblDivisionCode.Description = 'Tacoma Division') THEN '<div>&#8226; <span style="color: #c51f1f"> Tacoma Division </span></div>' ELSE '<div>&#8226; <span style="color: #c51f1f"> Vancouver Division </span></div>' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1035),'') <> '' THEN '<div>&#8226;  <span style="color: #c51f1f"> Non-Standard Plan </span></div>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1024),'') <> '' THEN '<div>&#8226;  <span style="color: #c51f1f"> DSO Case </span></div>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},7), '') <> '' THEN '<div>&#8226;  <span style="color: #c51f1f"> IRS Pledged </span></div>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1025),'') <> '' THEN '<div>&#8226;  <span style="color: #c51f1f"> Bonuses Pledged </span></div>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1027),'') <> '' THEN '<div>&#8226;  <span style="color: #c51f1f"> Lanning Relief </span></div>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1040),'') <> '' THEN '<div>&#8226;  <span style="color: #c51f1f">Debtor Refund Mailed Direct </span></div>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1026),'') <> '' THEN '<div>&#8226;  <span style="color: #c51f1f">1-36, 37 On </span></div>' ELSE '' END + 
+            CASE WHEN dbo.udf_TAC_GetDischarge({CaseID}) = 1 THEN '<div>&#8226;  <span style="color: #c51f1f"> Debtor1 Not Eligible for Discharge </span></div>' ELSE '' END + 
+            CASE WHEN dbo.udf_TAC_GetDischarge({CaseID}) = 2 THEN '<div>&#8226;  <span style="color: #c51f1f"> Debtor2 Not Eligible for Discharge </span></div>' ELSE '' END + 
+            CASE WHEN dbo.udf_TAC_GetDischarge({CaseID}) = 3 THEN '<div>&#8226;  <span style="color: #c51f1f"> Debtor 1 & 2 Not Eligible for Discharge </span></div>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},1038),'') <> '' THEN '<div>&#8226;  <span style="color: #c51f1f"> Cares Act Case </span></div>' ELSE '' END + 
+            CASE WHEN ISNULL(dbo.udfGetCaseFlag({CaseID},3),'') LIKE '%Converted From%' THEN '<div>&#8226;  <span style="color: #c51f1f"> Converted From 7 to 13 </span></div>' ELSE '' END +
+            CASE WHEN (Select TOP 1 SnapshotDescription from tblCaseWorksheetSnapshot where caseid = {CaseID} and CaseWorksheetsID = 40) <> '' THEN '<div>&#8226;  <span style="color: #c51f1f"> Confirmation Worksheet Completed </span></div>' ELSE '' END 
+            
+AS FieldData FROM tblCaseData INNER JOIN 
+tblDivisionCode ON tblCaseData.DivisionCodeID = tblDivisionCode.DivisionCodeID 
+WHERE tblCaseData.CaseNumber = '{CaseNumber}' 
+~|
+|~
+SELECT '<div><span>' + Case WHEN NameTypeID = 5 THEN '&#8226;</span> <span style="color: #c51f1f"> Debtor 1: Flagged Reference Only</span></div>' WHEN NameTypeID = 6 THEN ' &#8226;</span> <span style="color: #c51f1f">Debtor 2: Flagged Reference Only </span></div>' END  
+AS FieldData FROM tblCaseData INNER JOIN 
+tblCaseName ON tblCaseData.CaseID = tblCaseName.CaseID INNER JOIN 
+tblName ON tblCaseName.NameID = tblName.NameID 
+WHERE tblCaseData.CaseNumber = '{CaseNumber}' 
+AND tblCaseName.NameTypeID IN (5,6) 
+AND tblName.ReferenceOnly = 1 
+~|
+
+|~Select '<div> &#8226; <span style="color: #c51f1f"> Large BOH: $' + convert(varchar, BalanceOnHand, 1) + '</span></div>' as FieldData from tblCaseData where CaseID = {CaseID} and BalanceOnhand > 25000~|
+</div>  
+</div>
